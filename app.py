@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from sqlalchemy.sql.elements import Null
+from sqlalchemy.sql.expression import insert
 from wtforms import BooleanField, PasswordField, StringField
 from wtforms.validators import Email, InputRequired, Length
 import config
@@ -22,6 +23,7 @@ db.init_app(app)
 migrate.init_app(app, db)
 
 from models import user_info
+import views
 Bootstrap(app)
 
 
@@ -49,10 +51,8 @@ def signup():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        new_user = user_info(user_id=form.userID.data, user_pw=form.password.data, user_nick=form.nickname.data, user_prof='asdfadsf')
-        db.session.add(new_user)
+        views.user_insert(form.userID.data, form.password.data, form.nickname.data)
         
-        db.session.commit()
 
         return '<h1>New user has been created</h1>'
 
