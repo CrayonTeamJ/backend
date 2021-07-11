@@ -11,6 +11,7 @@ def user_insert(user_id, user_pw, user_nick):
     new_user = models.user_info(user_id, user_pw, user_nick)
     db.session.add(new_user)
     db.session.commit()
+    return True
 
 def user_login(userID, password):
     login = false

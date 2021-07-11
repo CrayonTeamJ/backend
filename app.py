@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, url_for
+from flask import Flask, redirect, render_template, url_for, jsonify
 from flask_bootstrap import Bootstrap
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -32,6 +32,13 @@ Bootstrap(app)
 def index():
     return render_template('index.html')
 
+@app.route('/signup', methods=['GET'])
+def hello():
+    return jsonify(hello='world')
+
+
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -46,7 +53,8 @@ def login():
 
     return render_template('login.html', form=form)
     
-@app.route('/signup', methods=['GET', 'POST'])
+@app.route('/signup', methods=['POST'])
+
 def signup():
     form = RegisterForm()
 
@@ -54,7 +62,8 @@ def signup():
         views.user_insert(form.userID.data, form.password.data, form.nickname.data)
         
 
-        return 
+        if True:
+            return '<h1>Sucsess<h1>'
 
         
 
@@ -63,3 +72,6 @@ def signup():
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
+
+if __name__ == '__main__':
+    app.run(debug=True) 
