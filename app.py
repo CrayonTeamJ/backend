@@ -1,20 +1,16 @@
-from flask import Flask, redirect, render_template, url_for, jsonify
+from flask import Flask, redirect, render_template, url_for, jsonify, Response, make_response, request
 from flask_bootstrap import Bootstrap
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import FlaskForm
 from sqlalchemy.sql.elements import Null
 from sqlalchemy.sql.expression import insert, true
-from wtforms import BooleanField, PasswordField, StringField
-from wtforms.validators import Email, InputRequired, Length
+from werkzeug.wrappers import response
+import logging
 import config
-from forms import LoginForm, RegisterForm
 
 
 app = Flask(__name__)
-
 db = SQLAlchemy()
-
 migrate = Migrate() 
 
   
@@ -24,53 +20,46 @@ migrate.init_app(app, db)
 
 from models import user_info
 import views
-Bootstrap(app)
+
+logging.basicConfig(level=logging.DEBUG )
 
 
 
-@app.route('/')
+@app.route('/api')
 def index():
-    return render_template('index.html')
+    print("hello world")
+    app.logger.info('hello world - app logger ') 
+    return Response("test", status=201, mimetype='text/html')
+    #return make_response(jsonify({'success' : 'success'}), 200)
 
-@app.route('/signup', methods=['GET'])
+@app.route('/api/signup', methods=['GET'])
 def hello():
-    form = RegisterForm()
-    
-    return render_template('signup.html', form=form)
+  
+    return "Login Page"
 
 
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/api/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-
-    if form.validate_on_submit():
-        views.user_login(form.userID.data, form.password.data)
-        if login == True:
-            return redirect(url_for('dashboard'))
+    userform = request.json
+    views.user_login(userform['userID'], userform['password'])
+    if True:
+        return "LogIn Success"
             
-        else:
-            return '<h1>Invalid username of password</h1>'
+    else:
+        return '<h1>Invalid username of password</h1>'
 
-    return render_template('login.html', form=form)
     
-@app.route('/signup', methods=['POST'])
+@app.route('/api/signup', methods=['POST'])
 
 def signup():
-    form = RegisterForm()
-
-    if form.validate_on_submit():
-        views.user_insert(form.userID.data, form.password.data, form.nickname.data)
+    userform = request.json
+    views.user_insert(userform['userID'], userform['password'], userform['nickname'])
         
+    if True:
+        return {'Success' : 'success'}
 
-        if True:
-            return {'Success' : 'success'}
-
-
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
 
 if __name__ == '__main__':
     app.run(debug=True) 

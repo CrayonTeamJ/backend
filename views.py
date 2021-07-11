@@ -15,11 +15,10 @@ def user_insert(user_id, user_pw, user_nick):
     return True
 
 def user_login(userID, password):
-    login = false
+
     user = models.user_info.query.filter(userID == models.user_info.user_id).first()
     if user:
         if user.user_pw == password:
-            login = True
-            return login
+            return True
         
 
