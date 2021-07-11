@@ -34,7 +34,9 @@ def index():
 
 @app.route('/signup', methods=['GET'])
 def hello():
-    return jsonify(hello='world')
+    form = RegisterForm()
+    
+    return render_template('signup.html', form=form)
 
 
 
@@ -63,11 +65,8 @@ def signup():
         
 
         if True:
-            return '<h1>Sucsess<h1>'
+            return {'Success' : 'success'}
 
-        
-
-    return render_template('signup.html', form=form)
 
 @app.route('/dashboard')
 def dashboard():
