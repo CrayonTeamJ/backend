@@ -37,11 +37,12 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        views.user_login(form.userID, form.password)
+        views.user_login(form.userID.data, form.password.data)
         if login == True:
             return redirect(url_for('dashboard'))
             
-        return '<h1>Invalid username of password</h1>'
+        else:
+            return '<h1>Invalid username of password</h1>'
 
     return render_template('login.html', form=form)
     
@@ -53,7 +54,7 @@ def signup():
         views.user_insert(form.userID.data, form.password.data, form.nickname.data)
         
 
-        return '<h1>New user has been created</h1>'
+        return 
 
         
 
