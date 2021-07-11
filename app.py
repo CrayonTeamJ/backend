@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from sqlalchemy.sql.elements import Null
-from sqlalchemy.sql.expression import insert
+from sqlalchemy.sql.expression import insert, true
 from wtforms import BooleanField, PasswordField, StringField
 from wtforms.validators import Email, InputRequired, Length
 import config
@@ -37,10 +37,9 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        user = user_info.query.filter_by(user_id=form.userID.data).first()
-        if user:
-            if user.user_pw == form.password.data:
-                return redirect(url_for('dashboard'))
+        views.user_login(form.userID, form.password)
+        if login == True:
+            return redirect(url_for('dashboard'))
             
         return '<h1>Invalid username of password</h1>'
 
@@ -63,6 +62,3 @@ def signup():
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
-
-if __name__ == '__main__':
-    manager .run(debug=True)
