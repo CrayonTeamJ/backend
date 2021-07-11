@@ -1,5 +1,6 @@
 from flask import Flask, redirect, render_template, url_for, jsonify, Response, make_response, request
 from flask_bootstrap import Bootstrap
+from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.elements import Null
@@ -12,6 +13,7 @@ import config
 app = Flask(__name__)
 db = SQLAlchemy()
 migrate = Migrate() 
+CORS(app)
 
   
 app.config.from_object(config)
