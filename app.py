@@ -27,46 +27,41 @@ logging.basicConfig(level=logging.DEBUG )
 
 
 
-@app.route('/api')
-def index():
-    print("hello world")
-    app.logger.info('hello world - app logger ') 
-    return Response("test", status=201, mimetype='text/html')
-    #return make_response(jsonify({'success' : 'success'}), 200)
-
-@app.route('/api/signup', methods=['GET'])
-def hello():
-  
-    return "Login Page"
-
+# @app.route('/api')
+# def index():
+#     print("hello world")
+#     app.logger.info('hello world - app logger ') 
+#     return Response("test", status=201, mimetype='text/html')
+#     #return make_response(jsonify({'success' : 'success'}), 200)
 
 
 
 @app.route('/api/login', methods=['POST'])
 def login():
     userform = request.json
-    views.user_login(userform['userID'], userform['password'])
-    if True:
-        return "LogIn Success"
+    UserLogin = views.user_login(userform['userID'], userform['password'])
+    
+    if UserLogin == True:
+        return make_response(jsonify({'Result' : 'Login Success'}), 200)
             
     else:
-        return '<h1>Invalid username of password</h1>'
+        return make_response(jsonify({'Result' : 'Login Fail'}), 203)
 
     
 @app.route('/api/signup', methods=['POST'])
 
 def signup():
     userform = request.json
-    views.user_insert(userform['userID'], userform['password'], userform['nickname'])
+    dup_test = views.user_insert(userform['userID'], userform['password'], userform['nickname'])
         
-    if 'id_duplicated':
+    if dup_test == 'id_duplicated':
         return make_response(jsonify({'Result' : 'ID_duplicated'}), 203)
     
-    elif 'nk_duplicated':
+    elif dup_test == 'nk_duplicated':
         return make_response(jsonify({'Result' : 'NK_duplicated'}), 203)
 
     else:
-        return {'Result' : 'Success'}
+        return make_response(jsonify({'Result' : 'Success'}), 200)
 
 
 
