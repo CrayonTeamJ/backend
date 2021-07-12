@@ -13,7 +13,7 @@ import config
 app = Flask(__name__)
 db = SQLAlchemy()
 migrate = Migrate() 
-CORS(app)
+CORS(app) # 있어야 프런트와 통신 가능, 없으면 오류뜸
 
   
 app.config.from_object(config)
@@ -42,7 +42,7 @@ def hello():
 
 
 
-@app.route('/api/login', methods=['GET', 'POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     userform = request.json
     views.user_login(userform['userID'], userform['password'])
@@ -59,8 +59,16 @@ def signup():
     userform = request.json
     views.user_insert(userform['userID'], userform['password'], userform['nickname'])
         
-    if True:
-        return {'Success' : 'success'}
+    if 'id_duplicated':
+        return make_response(jsonify({'Result' : 'ID_duplicated'}), 400)
+    
+    elif 'nk_duplicated':
+        return make_response(jsonify({'Result' : 'NK_duplicated'}), 201)
+
+    else:
+        return {'Result' : 'Success'}
+
+
 
 
 if __name__ == '__main__':
