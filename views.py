@@ -35,8 +35,10 @@ def user_insert(userID, userPW, userNICK):
 def user_login(userID, password):
 
     user_byID = userDB.query.filter(userID == userDB.user_id).first()
-    if user_byID == True:
+    if user_byID:
         if user_byID.user_pw == password:
             return True
+    else :
+        False
         
 
