@@ -60,10 +60,10 @@ def signup():
     views.user_insert(userform['userID'], userform['password'], userform['nickname'])
         
     if 'id_duplicated':
-        return make_response(jsonify({'Result' : 'ID_duplicated'}), 400)
+        return make_response(jsonify({'Result' : 'ID_duplicated'}), 203)
     
     elif 'nk_duplicated':
-        return make_response(jsonify({'Result' : 'NK_duplicated'}), 201)
+        return make_response(jsonify({'Result' : 'NK_duplicated'}), 203)
 
     else:
         return {'Result' : 'Success'}

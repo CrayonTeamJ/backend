@@ -7,28 +7,30 @@ os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 import models
 from app import app, db
 
+user = models.user_info
 
-def user_insert(user_id, user_pw, user_nick):
-    reuslt = 'false'
-    Find_dupe_id = select(user_info).where(user_id == user_info.user_id)
-    Find_dupe_nk = select(user_info).where(user_pw == user_info.user_nick)
-    user = models.user_info.query.filter(user_id == models.user_info.user_id).first()
+
+def user_insert(userID, userPW, userNICK):
+    user_byID = user.query.filter(userID == user.user_id).first()
+    user_byNK = user.query.filter(userNICK == user.user_nick).first()
     
-
-    if user_id != Find_dupe_id:
-        result = 'id_duplicated'
-        return  result
-
-    elif Find_dupe_nk == True:
-        result = 'nk_duplicated'
-        return result
-    
-    else :
-        new_user = models.user_info(user_id, user_pw, user_nick)
+    if user_byID is None and user_byNK is None:
+        new_user = user(userID, userPW, userNICK)
         db.session.add(new_user)
         db.session.commit()
         result = 'success'
         return result
+
+    elif (userID == user_byID.user_id) or (user_byID is None):
+        result = 'id_duplicated'
+        return  result
+
+    elif userNICK == user_byNK.user_nick:
+        result = 'nk_duplicated'
+        return result
+    
+    
+        
 
 def user_login(userID, password):
 
