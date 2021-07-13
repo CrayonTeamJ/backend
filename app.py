@@ -4,9 +4,6 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import jwt_required
-from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import *
 import logging
 from werkzeug.utils import secure_filename
@@ -21,6 +18,7 @@ jwt = JWTManager(app)
 JWT_COOKIE_SECURE = False # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
 JWT_TOKEN_LOCATION = ['cookies']
 JWT_COOKIE_CSRF_PROTECT = True 
+JWT_ACCESS_TOKEN_EXPIRES = 120
 
 app.config.from_object(config)
 db.init_app(app)
@@ -55,6 +53,14 @@ def video_input():
         # os.remove('./data/'+video_filename)
         # views.video_insert('local',video_filename,video_path_signed)
 
+@app.route('/api/refresh', methods=['GET'])
+@jwt_required(refresh=True)
+def refresh():
+    current_user = get_jwt_identity()
+    access_token = create_access_token(identity=current_user)
+    return jsonify(access_token=access_token, current_user=current_user)
+
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -65,7 +71,7 @@ def login():
         access_token = create_access_token(identity=userform['userID'])
         refresh_token = create_refresh_token(identity=userform['userID'])
 
-        resp = jsonify(Result = 'success', access_token = create_access_token(identity = userform['userID'], expires_delta = False))
+        resp = jsonify(Result = 'success', access_expire = '120', access_token = create_access_token(identity = userform['userID']))
         #set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp, 200
