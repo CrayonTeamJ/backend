@@ -7,6 +7,7 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended import *
 import logging
 from werkzeug.utils import secure_filename
+from werkzeug.wrappers import response
 import config
 
 app = Flask(__name__)
@@ -16,9 +17,9 @@ CORS(app) # 있어야 프런트와 통신 가능, 없으면 오류뜸
 jwt = JWTManager(app)
 
 JWT_COOKIE_SECURE = False # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
-JWT_TOKEN_LOCATION = ['cookies']
+app.config["JWT_TOKEN_LOCATION"] = ['cookies', "headers", "json"]
 JWT_COOKIE_CSRF_PROTECT = True 
-JWT_ACCESS_TOKEN_EXPIRES = 120
+JWT_ACCESS_TOKEN_EXPIRES = 63000
 
 app.config.from_object(config)
 db.init_app(app)
@@ -58,7 +59,7 @@ def video_input():
 def refresh():
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
-    return jsonify(access_token=access_token, current_user=current_user)
+    return jsonify(access_token=access_token, current_user=current_user, access_expire = JWT_ACCESS_TOKEN_EXPIRES)
 
 
 
@@ -71,7 +72,7 @@ def login():
         access_token = create_access_token(identity=userform['userID'])
         refresh_token = create_refresh_token(identity=userform['userID'])
 
-        resp = jsonify(Result = 'success', access_expire = '120', access_token = create_access_token(identity = userform['userID']))
+        resp = jsonify(Result = 'success', access_expire = JWT_ACCESS_TOKEN_EXPIRES, access_token = create_access_token(identity = userform['userID']))
         #set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp, 200
