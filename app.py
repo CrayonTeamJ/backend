@@ -66,7 +66,7 @@ def login():
         refresh_token = create_refresh_token(identity=userform['userID'])
 
         resp = jsonify(Result = 'success', access_token = create_access_token(identity = userform['userID'], expires_delta = False))
-        set_access_cookies(resp, access_token)
+        #set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp, 200
         
