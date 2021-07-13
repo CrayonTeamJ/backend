@@ -22,9 +22,7 @@ migrate.init_app(app, db)
 import views
 
 logging.basicConfig(level=logging.DEBUG )
-
-
-
+#
 
 @app.route('/api/login', methods=['POST'])
 def login():
