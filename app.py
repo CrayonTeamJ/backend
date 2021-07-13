@@ -3,6 +3,8 @@ from flask import Flask, redirect, render_template, url_for, jsonify, Response, 
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import create_access_token
 import logging
 from werkzeug.utils import secure_filename
 import config
@@ -11,6 +13,7 @@ app = Flask(__name__)
 db = SQLAlchemy()
 migrate = Migrate() 
 CORS(app) # 있어야 프런트와 통신 가능, 없으면 오류뜸
+jwt = JWTManager(app)
 
 app.config.from_object(config)
 db.init_app(app)
@@ -29,7 +32,8 @@ def login():
     UserLogin = views.user_login(userform['userID'], userform['password'])
     
     if UserLogin == True:
-        return make_response(jsonify({'Result' : 'Login_Success'}), 200)
+        return make_response(jsonify(Result = "success", access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
+        #return make_response(jsonify({'Result' : 'Login_Success',}, access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
             
     else:
         return make_response(jsonify({'Result' : 'Login_Fail'}), 203)
