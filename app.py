@@ -65,7 +65,7 @@ def login():
         access_token = create_access_token(identity=userform['userID'])
         refresh_token = create_refresh_token(identity=userform['userID'])
 
-        resp = jsonify({'login': True})
+        resp = jsonify({'Result': 'success'})
         set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp, 200
@@ -74,7 +74,7 @@ def login():
         #return make_response(jsonify({'Result' : 'Login_Success',}, access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
             
     else:
-        return make_response(jsonify({'Result' : 'Login_Fail'}), 203)
+        return make_response(jsonify({'Result' : 'fail'}), 203)
 
     
 @app.route('/api/signup', methods=['POST'])
