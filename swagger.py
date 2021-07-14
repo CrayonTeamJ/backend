@@ -11,7 +11,6 @@ ns  = api.namespace('api', description='API') # /detect/ 네임스페이스를 �
 
 # REST Api에 이용할 데이터 모델을 정의한다
 model_signup = api.model('signup_form', {
-
     'userID': fields.String(required=True, description='아이디', help='아이디는 필수'),
     'password': fields.String(required=True, description='비밀번호', help='비밀번호는 필수'),
     'nickname': fields.String(required=True, description='닉네임', help='닉네임은 필수'),
@@ -37,7 +36,6 @@ class Mainclass(Resource):
     @ns.doc(responses={ 200: 'OK', 203: 'Login Fail'})
     @ns.expect(model_login)
     def post(self):
-        #api.payload['Reasult'] = views.user_login(api.payload['userID'], api.payload['password'])
         pass
 
 @ns.route('/refresh')
@@ -50,7 +48,7 @@ class Refresh(Resource):
     def get(self):
         pass
 
-@ns.route('/input')
+@ns.route('/videoUpload')
 class Input(Resource):
     parser = api.parser()
     parser.add_argument('image_type', type=String, location='form')

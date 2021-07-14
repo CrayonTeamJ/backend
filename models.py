@@ -1,3 +1,6 @@
+from enum import unique
+from sqlalchemy.sql.schema import Sequence
+from sqlalchemy.sql.sqltypes import Integer
 from app import db
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import ForeignKey, sql
@@ -16,3 +19,29 @@ class user_info(db.Model):
         self.user_id=user_id
         self.user_pw=user_pw
         self.user_nick=user_nick
+
+class video_info(db.Model):
+    __tablename__="video_info"
+    video_pk = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    category = db.Column(db.Boolean, nullable=False)
+    title = db.Column(db.String(150), nullable=False)
+    youtube_url = db.Column(db.String(150))
+    s3_video = db.Column(db.String(150), unique=True)
+    s3_audio = db.Column(db.String(150), unique=True)
+    
+    def __init__(self, video_pk, category, title):
+        self.video_pk = video_pk
+        self.category = category
+        self.title = title
+
+class image_info(db.Model):
+    __tablename__="image_info"
+    image_pk = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    video_pk = db.Column(db.Integer, ForeignKey('video_info.video_pk'))
+    s3_path = db.Column(db.String(150), unique=True)
+    time_reccord = db.Column(db.String(150))
+
+    def __init__(self, image_pk, video_pk, s3_path):
+        self.image_pk = image_pk
+        self.video_pk = video_pk
+        self.s3_path = s3_path

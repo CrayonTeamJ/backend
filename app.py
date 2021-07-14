@@ -39,7 +39,7 @@ def user_only():
 	else:
 		return make_response(jsonify({'Result' : 'Success', 'message' : 'Is_user'}), 200)
 
-@app.route('/api/input', methods=['POST'])
+@app.route('/api/videoUpload', methods=['POST'])
 def video_input():
 
     if request.form['image_type'] == "1" :
@@ -98,7 +98,8 @@ def signup():
 
     else:
         return make_response(jsonify({'Result' : 'Success'}), 200)
-
+        
+    
 
 
 
