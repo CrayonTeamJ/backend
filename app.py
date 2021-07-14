@@ -9,6 +9,7 @@ import logging
 from werkzeug.utils import secure_filename
 from werkzeug.wrappers import response
 import config
+from function.video_func import *
 
 app = Flask(__name__)
 db = SQLAlchemy()
@@ -45,7 +46,9 @@ def video_input():
     if request.form['image_type'] == "1" :
         Your_input = request.files['file']
         video_filename=secure_filename(Your_input.filename)
-        Your_input.save(os.path.join('./data/',video_filename))
+        file_path = os.path.join('./data/', video_filename)
+        Your_input.save(file_path)
+        mp4_to_mp3(file_path)
         return make_response(jsonify({'Result' : 'Success'}), 200)
 
         # gcp_control.upload_blob_filename('teamg-data','./data/'+video_filename,video_filename)
@@ -69,7 +72,6 @@ def login():
     UserLogin = views.user_login(userform['userID'], userform['password'])
     
     if UserLogin == True:
-        access_token = create_access_token(identity=userform['userID'])
         refresh_token = create_refresh_token(identity=userform['userID'])
 
         resp = jsonify(Result = 'success', access_expire = JWT_ACCESS_TOKEN_EXPIRES, access_token = create_access_token(identity = userform['userID']))
