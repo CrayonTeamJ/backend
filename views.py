@@ -14,10 +14,10 @@ userDB = models.user_info
 
 
 
-def user_insert(userID, userPW, userNICK):
+def user_insert(userID, password, userNICK):
     user_byID = userDB.query.filter(userID == userDB.user_id).first()
     user_byNK = userDB.query.filter(userNICK == userDB.user_nick).first()
-    bytes_password = userPW.encode('UTF-8')
+    bytes_password = password.encode('UTF-8')
     bytes_hashed_password = bcrypt.hashpw(bytes_password, bcrypt.gensalt())
     
     if user_byID is None and user_byNK is None:

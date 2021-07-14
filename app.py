@@ -17,9 +17,9 @@ CORS(app) # 있어야 프런트와 통신 가능, 없으면 오류뜸
 jwt = JWTManager(app)
 
 JWT_COOKIE_SECURE = False # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
-app.config["JWT_TOKEN_LOCATION"] = ['cookies', "headers", "json"]
+app.config["JWT_TOKEN_LOCATION"] = ['cookies', "headers", "json"] #토큰을 어디서 찾을지에 대한 내용
 JWT_COOKIE_CSRF_PROTECT = True 
-JWT_ACCESS_TOKEN_EXPIRES = 63000
+JWT_ACCESS_TOKEN_EXPIRES = 300000
 
 app.config.from_object(config)
 db.init_app(app)
@@ -55,7 +55,7 @@ def video_input():
         # views.video_insert('local',video_filename,video_path_signed)
 
 @app.route('/api/refresh', methods=['GET'])
-@jwt_required(refresh=True)
+@jwt_required(refresh=True) #@jwt_required(locations="headers")
 def refresh():
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
@@ -91,7 +91,7 @@ def signup():
     dup_test = views.user_insert(userform['userID'], userform['password'], userform['nickname'])
         
     if dup_test == 'id_duplicated':
-        return make_response(jsonify({'Result' : 'ID_duplicated'}), 203)
+        return make_response(jsonify({'Result' : 'ID_duplicated'}), 202)
     
     elif dup_test == 'nk_duplicated':
         return make_response(jsonify({'Result' : 'NK_duplicated'}), 203)
