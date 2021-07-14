@@ -21,6 +21,11 @@ model_login = api.model('login_form', {
     'password': fields.String(required=True, description='비밀번호', help='비밀번호는 필수'),
 })
 
+model_key = api.model('key_form', {
+    'key_type' : fields.String(required=True, description='키워드 종류'),
+    'keyword_voice' : fields.String(required=False, description='키워드 대사'),
+    'keyword_people' : fields.String(required=False, description='키워드 사람')
+})
 
 
 @ns.route('/signup') # 네임스페이스 x.x.x.x/detect 하위 / 라우팅
@@ -56,3 +61,11 @@ class Input(Resource):
     @api.expect(parser)
     def post(self):
         pass
+
+@ns.route('/insert_keyword')
+class Keyword(Resource):
+    @ns.doc(responses={ 200: 'OK'})
+    @ns.expect(model_key)
+    def post(self):
+        pass
+
