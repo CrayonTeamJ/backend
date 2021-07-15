@@ -73,6 +73,9 @@ def video_input():
         download_audio(Your_input, file_number)
         upload_blob_file('./data/audio' + str(file_number) + '.mp3', 'audio/audio' + str(file_number) + '.mp3')
 
+        os.remove('./data/video'+ str(file_number) + '.mp4')
+        os.remove('./data/audio' + str(file_number) + '.mp3')
+
         file_number += 1
         return make_response(jsonify({'Result' : 'Success'}), 200)
 
