@@ -49,4 +49,9 @@ def user_login(userID, password):
     else :
         False
         
+def path_by_local(category, title, video_path, audio_path):
+    new_file = models.video_info(category=category, title=title, s3_video=video_path, s3_audio=audio_path)
+    db.session.add(new_file)
+    db.session.commit()
+    pass
 

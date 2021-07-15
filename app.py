@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.wrappers import response
 import config
 from function.video_func import *
+from function.s3_control import *
 
 app = Flask(__name__)
 db = SQLAlchemy()
@@ -43,14 +44,20 @@ def user_only():
 @app.route('/api/videoUpload', methods=['POST'])
 def video_input():
 
-    if request.form['image_type'] == "1" :
+    if request.form['video_type'] == "1" :
         Your_input = request.files['file']
         video_filename=secure_filename(Your_input.filename)
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
         mp4_to_mp3(file_path)
+        upload_blob_file(file_path, 'video/' + video_filename)
+        upload_blob_file('./data/audio.mp3', 'audio/audio.mp3')
+        video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
+        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio1.mp3'
+        os.remove('./data/'+video_filename)
+        os.remove('./data/audio.mp3')
+        views.path_by_local(False, video_filename, video_path, audio_path)
         return make_response(jsonify({'Result' : 'Success'}), 200)
-
         # gcp_control.upload_blob_filename('teamg-data','./data/'+video_filename,video_filename)
         # video_path = 'https://storage.googleapis.com/teamg-data/'+video_filename
         # video_path_signed = gcp_control.generate_download_signed_url_v4('teamg-data', video_filename)

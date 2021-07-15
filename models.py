@@ -26,13 +26,14 @@ class video_info(db.Model):
     category = db.Column(db.Boolean, nullable=False)
     title = db.Column(db.String(150), nullable=False)
     youtube_url = db.Column(db.String(150))
-    s3_video = db.Column(db.String(150), unique=True)
-    s3_audio = db.Column(db.String(150), unique=True)
+    s3_video = db.Column(db.String(150))
+    s3_audio = db.Column(db.String(150))
     
-    def __init__(self, video_pk, category, title):
-        self.video_pk = video_pk
+    def __init__(self, category, title, s3_video, s3_audio):
         self.category = category
         self.title = title
+        self.s3_video = s3_video
+        self.s3_audio = s3_audio
 
 class image_info(db.Model):
     __tablename__="image_info"
@@ -41,7 +42,6 @@ class image_info(db.Model):
     s3_path = db.Column(db.String(150), unique=True)
     time_reccord = db.Column(db.String(150))
 
-    def __init__(self, image_pk, video_pk, s3_path):
-        self.image_pk = image_pk
+    def __init__(self, video_pk, s3_path):
         self.video_pk = video_pk
         self.s3_path = s3_path
