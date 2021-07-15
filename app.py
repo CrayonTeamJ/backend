@@ -61,23 +61,27 @@ def video_input():
         audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number) + '.mp3'
         os.remove('./data/'+video_filename)
         os.remove('./data/audio' + str(file_number) + '.mp3')
-        views.path_by_local(False, video_filename, video_path, audio_path)
+        video_pk = views.path_by_local(False, video_filename, video_path, audio_path)
         file_number += 1
-        return make_response(jsonify({'Result' : 'Success'}), 200)
+        return make_response(jsonify({'Result' : 'Success'}, {'video_pk' : video_pk}), 200)
         
     elif request.form['video_type'] == "0" :
         Your_input= request.form['video_url']
+        video_filename = 'video' + str(file_number) + '.mp4'
         download_video(Your_input, file_number)
         upload_blob_file('./data/video' + str(file_number) + '.mp4', 'video/video' + str(file_number) + '.mp4')
         
         download_audio(Your_input, file_number)
         upload_blob_file('./data/audio' + str(file_number) + '.mp3', 'audio/audio' + str(file_number) + '.mp3')
-
+        video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
+        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number) + '.mp3'
         os.remove('./data/video'+ str(file_number) + '.mp4')
         os.remove('./data/audio' + str(file_number) + '.mp3')
 
+        video_pk = views.path_by_local(False, video_filename, video_path, audio_path)
+
         file_number += 1
-        return make_response(jsonify({'Result' : 'Success'}), 200)
+        return make_response(jsonify({'Result' : 'Success'}, {'video_pk' : video_pk}), 200)
 
 
 

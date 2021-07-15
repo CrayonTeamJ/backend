@@ -1,4 +1,3 @@
-from models import user_info
 from operator import ne
 import sys, os
 from sqlalchemy import sql, func, select
@@ -8,11 +7,7 @@ import models
 from app import app, db
 import bcrypt
 
-
 userDB = models.user_info
-
-
-
 
 def user_insert(userID, password, userNICK):
     user_byID = userDB.query.filter(userID == userDB.user_id).first()
@@ -34,9 +29,6 @@ def user_insert(userID, password, userNICK):
     else:
         result = 'id_duplicated'
         return result
-    
-    
-        
 
 def user_login(userID, password):
     bytes_password = password.encode('utf-8')
@@ -53,5 +45,7 @@ def path_by_local(category, title, video_path, audio_path):
     new_file = models.video_info(category=category, title=title, s3_video=video_path, s3_audio=audio_path)
     db.session.add(new_file)
     db.session.commit()
-    pass
+    by_title = models.video_info.query.filter(title == models.video_info.title).first()
+    video_pk = by_title.video_pk
+    return video_pk
 

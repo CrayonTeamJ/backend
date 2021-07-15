@@ -34,7 +34,7 @@ def download_video(youtube_url, file_number):
         'nocheckcertificate': True,
         'videoformat' : "mp4",
       	'outtmpl': './data/video' + str(file_number) + '.mp4',
-        'format': 'bestvideo/best',
+        'format': 'bestvideo/best[height<=720]',
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download([youtube_url])
