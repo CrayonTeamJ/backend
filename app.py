@@ -1,4 +1,5 @@
 import sys, os
+from typing import Counter
 from flask import Flask, redirect, render_template, url_for, jsonify, Response, make_response, request
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -30,6 +31,8 @@ migrate.init_app(app, db)
 import views
 
 logging.basicConfig(level=logging.DEBUG )
+file_number = 0
+
 
 
 @app.route('/api/input', methods=['GET'])
@@ -43,26 +46,37 @@ def user_only():
 
 @app.route('/api/videoUpload', methods=['POST'])
 def video_input():
+    global file_number
 
     if request.form['video_type'] == "1" :
         Your_input = request.files['file']
-        video_filename=secure_filename(Your_input.filename)
+        video_filename = 'video' + str(file_number) + '.mp4'
+        #video_filename=secure_filename(Your_input.filename)
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
-        mp4_to_mp3(file_path)
-        upload_blob_file(file_path, 'video/' + video_filename)
-        upload_blob_file('./data/audio.mp3', 'audio/audio.mp3')
+        mp4_to_mp3(file_path, file_number)
+        upload_blob_file(file_path, 'video/video' + str(file_number) + '.mp4')
+        upload_blob_file('./data/audio'+ str(file_number) +'.mp3', 'audio/audio' + str(file_number) + '.mp3')
         video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio1.mp3'
+        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number) + '.mp3'
         os.remove('./data/'+video_filename)
-        os.remove('./data/audio.mp3')
+        os.remove('./data/audio' + str(file_number) + '.mp3')
         views.path_by_local(False, video_filename, video_path, audio_path)
+        file_number += 1
         return make_response(jsonify({'Result' : 'Success'}), 200)
-        # gcp_control.upload_blob_filename('teamg-data','./data/'+video_filename,video_filename)
-        # video_path = 'https://storage.googleapis.com/teamg-data/'+video_filename
-        # video_path_signed = gcp_control.generate_download_signed_url_v4('teamg-data', video_filename)
-        # os.remove('./data/'+video_filename)
-        # views.video_insert('local',video_filename,video_path_signed)
+        
+    elif request.form['video_type'] == "0" :
+        Your_input= request.form['video_url']
+        download_video(Your_input, file_number)
+        upload_blob_file('./data/video' + str(file_number) + '.mp4', 'video/video' + str(file_number) + '.mp4')
+        
+        download_audio(Your_input, file_number)
+        upload_blob_file('./data/audio' + str(file_number) + '.mp3', 'audio/audio' + str(file_number) + '.mp3')
+
+        file_number += 1
+        return make_response(jsonify({'Result' : 'Success'}), 200)
+
+
 
 @app.route('/api/refresh', methods=['GET'])
 @jwt_required(refresh=True) #@jwt_required(locations="headers")
