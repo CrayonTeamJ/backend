@@ -1,3 +1,4 @@
+from backend.views import get_nick, get_profile
 import sys, os
 from typing import Counter
 from flask import Flask, redirect, render_template, url_for, jsonify, Response, make_response, request
@@ -101,8 +102,11 @@ def login():
     
     if UserLogin == True:
         refresh_token = create_refresh_token(identity=userform['userID'])
+        nick = get_nick(userform['userID'])
+        profile = get_profile(userform['userID'])
 
-        resp = jsonify(Result = 'success', access_expire = JWT_ACCESS_TOKEN_EXPIRES, access_token = create_access_token(identity = userform['userID']))
+        resp = jsonify(Result = 'success', access_expire = JWT_ACCESS_TOKEN_EXPIRES, access_token = create_access_token(identity = userform['userID'],
+        Nickname = nick, Profile = profile))
         #set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp, 200

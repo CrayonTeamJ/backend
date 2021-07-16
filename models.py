@@ -1,12 +1,13 @@
 from enum import unique
 from sqlalchemy.sql.schema import Sequence
 from sqlalchemy.sql.sqltypes import Integer
-from app import db
+from flask_sqlalchemy import SQLAlchemy
+#from app import db
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import ForeignKey, sql
 import uuid
 
-
+db = SQLAlchemy()
 
 
 class user_info(db.Model):
