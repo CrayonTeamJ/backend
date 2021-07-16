@@ -7,6 +7,8 @@ from sqlalchemy import ForeignKey, sql
 import uuid
 
 
+
+
 class user_info(db.Model):
     __tablename__='user_info'
     user_pk = db.Column(UUID(as_uuid = True), primary_key=True, default=uuid.uuid4)

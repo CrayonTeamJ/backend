@@ -7,7 +7,11 @@ import models
 from app import app, db
 import bcrypt
 
+
 userDB = models.user_info
+
+
+
 
 def user_insert(userID, password, userNICK):
     user_byID = userDB.query.filter(userID == userDB.user_id).first()
