@@ -1,4 +1,3 @@
-from backend.views import get_nick, get_profile
 import sys, os
 from typing import Counter
 from flask import Flask, redirect, render_template, url_for, jsonify, Response, make_response, request
@@ -17,7 +16,7 @@ from function.s3_control import *
 app = Flask(__name__)
 db = SQLAlchemy()
 migrate = Migrate() 
-CORS(app) # 있어야 프런트와 통신 가능, 없으면 오류뜸
+CORS(app, supports_credentials=True) # 있어야 프런트와 통신 가능, 없으면 오류뜸
 jwt = JWTManager(app)
 
 JWT_COOKIE_SECURE = False # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
@@ -102,11 +101,11 @@ def login():
     
     if UserLogin == True:
         refresh_token = create_refresh_token(identity=userform['userID'])
-        nick = get_nick(userform['userID'])
-        profile = get_profile(userform['userID'])
+        nick = views.get_nick(userform['userID'])
+        profile = views.get_profile(userform['userID'])
 
-        resp = jsonify(Result = 'success', access_expire = JWT_ACCESS_TOKEN_EXPIRES, access_token = create_access_token(identity = userform['userID'],
-        Nickname = nick, Profile = profile))
+        resp = jsonify(Result = 'success', access_expire = JWT_ACCESS_TOKEN_EXPIRES, access_token = create_access_token(identity = userform['userID']),
+        Nickname = nick, Profile = profile, isLogin = True)
         #set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp, 200
