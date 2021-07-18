@@ -52,7 +52,7 @@ def get_nick(userID):
     return nick
 
 def get_profile(userID):
-    userID = userDB.querry.filter(userID == userDB.user_id).first()
+    userID = userDB.query.filter(userID == userDB.user_id).first()
     profile = userID.user_prof
     return profile
         

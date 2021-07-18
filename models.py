@@ -16,7 +16,7 @@ class user_info(db.Model):
     user_id = db.Column(db.String(150), unique=True, nullable=False)
     user_pw = db.Column(db.String(200), nullable=False)
     user_nick = db.Column(db.String(120), unique=True, nullable=False)
-    user_prof = db.Column(db.Text, nullable=True, default = 'default value')
+    user_prof = db.Column(db.Text, nullable=True, default = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/SampleImage.png')
 
     def __init__(self, user_id, user_pw, user_nick):
         self.user_id=user_id
