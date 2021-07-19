@@ -45,6 +45,10 @@ def user_login(userID, password):
             return True
     else :
         False
+
+def get_query_by_pk(pk):
+    query_pk = models.video_info.query.filter(pk == models.video_info.video_pk).first()
+    return query_pk
     
 def get_nick(userID):
     user_byID = userDB.query.filter(userID == userDB.user_id).first()

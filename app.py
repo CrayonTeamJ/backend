@@ -1,6 +1,6 @@
 import views
 import os
-from flask import Flask, jsonify, Response, make_response, request
+from flask import Flask, jsonify, Response, make_response, request, json
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -12,6 +12,7 @@ from werkzeug.wrappers import response
 import config
 from function.video_func import *
 from function.s3_control import *
+import requests
 
 app = Flask(__name__)
 db = SQLAlchemy()
@@ -31,6 +32,7 @@ migrate.init_app(app, db)
 
 logging.basicConfig(level=logging.DEBUG)
 file_number = 0
+video_pk_g = 0
 
 
 @app.route('/api/input', methods=['GET'])
@@ -47,6 +49,7 @@ def user_only():
 @app.route('/api/videoUpload', methods=['POST'])
 def video_input():
     global file_number
+    global video_pk_g
 
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
@@ -65,6 +68,7 @@ def video_input():
         os.remove('./data/audio' + str(file_number) + '.mp3')
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
+        video_pk_g = video_pk
         file_number += 1
         return make_response(jsonify({'Result': 'Success'}, {'video_pk': video_pk}), 200)
 
@@ -145,6 +149,17 @@ def signup():
 
     else:
         return make_response(jsonify({'Result': 'Success'}), 200)
+
+
+@app.route("/to_yolo")
+def dataToYolo():
+    #뭘 보내야 하나요 비디오 pk, 비디오 링크
+    video_pk = 16
+    line = views.get_query_by_pk(video_pk)
+    pk = line.video_pk
+    video_path = line.s3_video
+    data = {'video_pk': pk, 's3_video': video_path}
+    return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
 
 if __name__ == '__main__':
     app.run(debug=True)
