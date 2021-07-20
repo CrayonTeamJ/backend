@@ -55,6 +55,10 @@ def video_input():
     file_number_inside = file_number
     file_number += 1
 
+    print("print request=====================")
+    print(request)
+    print("print request=====================")
+
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
         video_filename = 'video' + str(file_number_inside) + '.mp4'
