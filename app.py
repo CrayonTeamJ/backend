@@ -73,7 +73,7 @@ def video_input():
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
         video_pk_g = video_pk
-        return make_response(jsonify({'Result': 'Success'}, {'video_pk': video_pk}), 200)
+        return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
     elif request.form['video_type'] == "0":
         Your_input = request.form['video_url']
@@ -94,7 +94,7 @@ def video_input():
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
 
-        return make_response(jsonify({'Result': 'Success'}, {'video_pk': video_pk}), 200)
+        return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
 
 @app.route('/api/refresh', methods=['GET'])

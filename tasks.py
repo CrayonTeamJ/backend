@@ -1,4 +1,4 @@
-from re import T
+
 from celery.signals import task_postrun
 import models
 import views
@@ -22,15 +22,17 @@ def async_user_login(self, userID, password):
 def async_path_by_local(self, category, title, video_path, audio_path):
     views.path_by_local(category, title, video_path, audio_path)
 
-@celery.task(bind=True)
-def async_download_audio(self, youtube_url, file_number):
+@celery.task()
+def async_download_audio(youtube_url, file_number):
     time.sleep(5)
     function.video_func.download_audio(youtube_url, file_number)
+    time.sleep(5)
 
-@celery.task(bind=True)
-def async_download_video(self, youtube_url, file_number):
+@celery.task()
+def async_download_video(youtube_url, file_number):
     time.sleep(5)
     function.video_func.download_video(youtube_url, file_number)
+    time.sleep(5)
 
 
 # @task_postrun.connect
@@ -45,6 +47,15 @@ def async_download_video(self, youtube_url, file_number):
 
 # start celery beat
 # celery -A tasks.celery beat --loglevel=info
+@celery.task
+def slow_task(x):
+	time.sleep(x)
+	return x
+
+
+@celery.task
+def quick_task(x):
+	return x
 
 celery.conf.beat_schedule = {
     'asyncReadMsg in every 10 seconds': {
