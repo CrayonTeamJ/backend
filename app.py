@@ -1,4 +1,3 @@
-import views
 import os
 from flask import Flask, jsonify, Response, make_response, request, json
 from flask_cors import CORS
@@ -12,14 +11,18 @@ from werkzeug.wrappers import response
 import config
 from function.video_func import *
 from function.s3_control import *
+from flask_celery import make_celery
 import requests
+
+import views
 
 app = Flask(__name__)
 db = SQLAlchemy()
 migrate = Migrate()
 CORS(app, supports_credentials=True)  # 있어야 프런트와 통신 가능, 없으면 오류뜸
 jwt = JWTManager(app)
-
+celery = make_celery(app)
+import tasks
 JWT_COOKIE_SECURE = False  # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
 app.config["JWT_TOKEN_LOCATION"] = [
     'cookies', "headers", "json"]  # 토큰을 어디서 찾을지에 대한 내용
@@ -50,48 +53,48 @@ def user_only():
 def video_input():
     global file_number
     global video_pk_g
+    file_number_inside = file_number
+    file_number += 1
 
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
-        video_filename = 'video' + str(file_number) + '.mp4'
+        video_filename = 'video' + str(file_number_inside) + '.mp4'
         # video_filename=secure_filename(Your_input.filename)
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
-        mp4_to_mp3(file_path, file_number)
-        upload_blob_file(file_path, 'video/video' + str(file_number) + '.mp4')
-        upload_blob_file('./data/audio' + str(file_number) +
-                         '.mp3', 'audio/audio' + str(file_number) + '.mp3')
+        mp4_to_mp3(file_path, file_number_inside)
+        upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
+        upload_blob_file('./data/audio' + str(file_number_inside) +
+                         '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
         video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
         audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + \
-            str(file_number) + '.mp3'
+            str(file_number_inside) + '.mp3'
         os.remove('./data/'+video_filename)
-        os.remove('./data/audio' + str(file_number) + '.mp3')
+        os.remove('./data/audio' + str(file_number_inside) + '.mp3')
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
         video_pk_g = video_pk
-        file_number += 1
         return make_response(jsonify({'Result': 'Success'}, {'video_pk': video_pk}), 200)
 
     elif request.form['video_type'] == "0":
         Your_input = request.form['video_url']
-        video_filename = 'video' + str(file_number) + '.mp4'
-        download_video(Your_input, file_number)
-        upload_blob_file('./data/video' + str(file_number) +
-                         '.mp4', 'video/video' + str(file_number) + '.mp4')
+        video_filename = 'video' + str(file_number_inside) + '.mp4'
+        tasks.async_download_video(Your_input, file_number_inside)
+        upload_blob_file('./data/video' + str(file_number_inside) +
+                         '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
 
-        download_audio(Your_input, file_number)
-        upload_blob_file('./data/audio' + str(file_number) +
-                         '.mp3', 'audio/audio' + str(file_number) + '.mp3')
+        tasks.async_download_audio(Your_input, file_number_inside)
+        upload_blob_file('./data/audio' + str(file_number_inside) +
+                         '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
         video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
         audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + \
-            str(file_number) + '.mp3'
-        os.remove('./data/video' + str(file_number) + '.mp4')
-        os.remove('./data/audio' + str(file_number) + '.mp3')
+            str(file_number_inside) + '.mp3'
+        os.remove('./data/video' + str(file_number_inside) + '.mp4')
+        os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
 
-        file_number += 1
         return make_response(jsonify({'Result': 'Success'}, {'video_pk': video_pk}), 200)
 
 @app.route('/api/refresh', methods=['GET'])
@@ -138,7 +141,7 @@ def login():
 @app.route('/api/signup', methods=['POST'])
 def signup():
     userform = request.json
-    dup_test = views.user_insert(
+    dup_test = tasks.async_user_insert(
         userform['userID'], userform['password'], userform['nickname'])
 
     if dup_test == 'id_duplicated':
