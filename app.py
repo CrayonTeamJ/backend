@@ -22,6 +22,7 @@ migrate = Migrate()
 CORS(app, supports_credentials=True)  # 있어야 프런트와 통신 가능, 없으면 오류뜸
 jwt = JWTManager(app)
 celery = make_celery(app)
+#task
 import tasks
 JWT_COOKIE_SECURE = False  # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
 app.config["JWT_TOKEN_LOCATION"] = [
