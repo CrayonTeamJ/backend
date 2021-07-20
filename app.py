@@ -48,7 +48,6 @@ def user_only():
         return make_response(jsonify({'Result': 'Success', 'message': 'Is_user'}), 200)
 
 
-
 @app.route('/api/videoUpload', methods=['POST'])
 def video_input():
     global file_number
@@ -97,8 +96,10 @@ def video_input():
 
         return make_response(jsonify({'Result': 'Success'}, {'video_pk': video_pk}), 200)
 
+
 @app.route('/api/refresh', methods=['GET'])
-@jwt_required(refresh=True, optional=True)  # @jwt_required(locations="headers")
+# @jwt_required(locations="headers")
+@jwt_required(refresh=True, optional=True)
 def refresh():
     current_user = get_jwt_identity()
     if current_user is None:
@@ -108,6 +109,7 @@ def refresh():
         access_token = create_access_token(identity=current_user)
         return jsonify(Result='success', access_token=access_token, current_user=current_user, access_expire=JWT_ACCESS_TOKEN_EXPIRES), 200
 
+
 @app.route('/api/logout', methods=['GET'])
 def logout():
     # current_user = get_jwt_identity()
@@ -115,6 +117,7 @@ def logout():
     resp = jsonify(Result="success", access_token=access_token,
                    access_expire=0, isLogin=False)
     return resp, 200
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -138,6 +141,7 @@ def login():
     else:
         return make_response(jsonify({'Result': 'fail'}), 203)
 
+
 @app.route('/api/signup', methods=['POST'])
 def signup():
     userform = request.json
@@ -156,13 +160,14 @@ def signup():
 
 @app.route("/to_yolo")
 def dataToYolo():
-    #뭘 보내야 하나요 비디오 pk, 비디오 링크
+    # 뭘 보내야 하나요 비디오 pk, 비디오 링크
     video_pk = 16
     line = views.get_query_by_pk(video_pk)
     pk = line.video_pk
     video_path = line.s3_video
     data = {'video_pk': pk, 's3_video': video_path}
     return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
+
 
 if __name__ == '__main__':
     app.run(debug=True)
