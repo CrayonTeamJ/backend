@@ -68,9 +68,9 @@ def video_input():
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
         mp4_to_mp3(file_path, file_number_inside)
-        upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
-        upload_blob_file('./data/audio' + str(file_number_inside) +
-                         '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
+        # upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
+        # upload_blob_file('./data/audio' + str(file_number_inside) +
+        #                  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
         video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
         audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + \
             str(file_number_inside) + '.mp3'
@@ -90,12 +90,12 @@ def video_input():
 
         video_filename = 'video' + str(file_number_inside) + '.mp4'
         tasks.async_download_video(Your_input, file_number_inside)
-        upload_blob_file('./data/video' + str(file_number_inside) +
-                         '-0.mp4', 'video/video' + str(file_number_inside) + '.mp4')
+        # upload_blob_file('./data/video' + str(file_number_inside) +
+        #                  '-0.mp4', 'video/video' + str(file_number_inside) + '.mp4')
 
         tasks.async_download_audio(Your_input, file_number_inside)
-        upload_blob_file('./data/audio' + str(file_number_inside) +
-                         '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
+        # upload_blob_file('./data/audio' + str(file_number_inside) +
+        #                  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
         video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
         audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
         os.remove('./data/video' + str(file_number_inside) + '.mp4')
@@ -103,7 +103,7 @@ def video_input():
         os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
         video_pk = views.path_by_local(
-            False, video_filename, video_path, audio_path)
+            True, video_filename, video_path, audio_path)
 
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
