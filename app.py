@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, Response, make_response, request, json
+from flask import Flask, jsonify, Response, make_response, request, json, redirect
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -11,11 +11,17 @@ from werkzeug.wrappers import response
 import config
 from function.video_func import *
 from function.s3_control import *
+from function.clova_func import *
+from function.trans import *
 from flask_celery import make_celery
 import requests
 from pytube import YouTube
-
+from flask_pymongo import PyMongo
 import views
+import time
+
+
+
 
 app = Flask(__name__)
 db = SQLAlchemy()
@@ -23,6 +29,20 @@ migrate = Migrate()
 CORS(app, supports_credentials=True)  # 있어야 프런트와 통신 가능, 없으면 오류뜸
 jwt = JWTManager(app)
 celery = make_celery(app)
+
+# this is only about mongodb
+app.config["MONGO_URI"] = "mongodb+srv://Crayon:pc2Af0vKZWbkT7GL@clustercrayon.lij0j.mongodb.net/voicedb?retryWrites=true&w=majority"
+mongodb_client = PyMongo(app)
+coll = mongodb_client.db.voice_files_list
+
+
+def save_audio_result_to_mongo(video_pk, post_result):
+    coll.insert({
+        'video_number': video_pk,
+        'sentence_list': post_result['sentence_list']
+    })
+
+
 #task
 import tasks
 JWT_COOKIE_SECURE = False  # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
@@ -54,11 +74,17 @@ def user_only():
 def video_input():
     global file_number
     global video_pk_g
+
+    lang = request.form['language']
+
     file_number_inside = file_number
     file_number += 1
 
+    # audio_path = 0
+    # video_pk = 0
+
     print("print request=====================")
-    print(request)
+    print(request.form)
     print("print request=====================")
 
     if request.form['video_type'] == "1":
@@ -68,9 +94,10 @@ def video_input():
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
         mp4_to_mp3(file_path, file_number_inside)
+        # 클로바 실행시 아래 두 줄 주석 취소하기
         # upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
         # upload_blob_file('./data/audio' + str(file_number_inside) +
-        #                  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
+                        #  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
         video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
         audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + \
             str(file_number_inside) + '.mp3'
@@ -79,9 +106,20 @@ def video_input():
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
         video_pk_g = video_pk
+        
+        pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
+        # print('type_of_preresult:', type(pre_result))
+
+
+        post_result = to_json(pre_result)
+        # print('type_of_postresult:', type(post_result))
+
+        save_audio_result_to_mongo(video_pk, post_result)
+
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
     elif request.form['video_type'] == "0":
+        # print(file_number_inside)
         Your_input = request.form['video_url']
         try:
             yt = YouTube(Your_input)
@@ -89,11 +127,14 @@ def video_input():
             return make_response(jsonify({'Result': 'false'}), 202)
 
         video_filename = 'video' + str(file_number_inside) + '.mp4'
+        # 클로바 실행시 아래 두 줄 주석 취소하기
         tasks.async_download_video(Your_input, file_number_inside)
         # upload_blob_file('./data/video' + str(file_number_inside) +
         #                  '-0.mp4', 'video/video' + str(file_number_inside) + '.mp4')
 
+        # 클로바 실행시 아래 두 줄 주석 취소하기
         tasks.async_download_audio(Your_input, file_number_inside)
+
         # upload_blob_file('./data/audio' + str(file_number_inside) +
         #                  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
         video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
@@ -104,6 +145,22 @@ def video_input():
 
         video_pk = views.path_by_local(
             True, video_filename, video_path, audio_path)
+        print('='*50)
+        print(audio_path)
+        print('='*50)
+
+        pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
+        # time.sleep(15)
+        print('pre_result:', pre_result)
+        # print('type_of_preresult:', type(pre_result))
+
+
+        post_result = to_json(pre_result)
+        print('post_result:', post_result)
+        # print('type_of_postresult:', type(post_result))
+
+        save_audio_result_to_mongo(video_pk, post_result)
+        
 
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
@@ -172,14 +229,21 @@ def signup():
 @app.route("/to_yolo")
 def dataToYolo():
     # 뭘 보내야 하나요 비디오 pk, 비디오 링크
-    video_pk = 19
+    video_pk = 16
     line = views.get_query_by_pk(video_pk)
     pk = line.video_pk
     video_path = line.s3_video
-    #data = {'video_pk': pk, 's3_video': video_path}
-    tasks.post_toYolo(pk, video_path)
-    return
-    # return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
+    data = {'video_pk': pk, 's3_video': video_path}
+    return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
+
+
+
+@app.route('/api/search', methods=['GET'])
+def search():
+
+    print(request.args.to_dict())
+    return make_response(request.args.to_dict(), 200)
+
 
 
 if __name__ == '__main__':
