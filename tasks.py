@@ -7,6 +7,7 @@ from app import celery
 from app import db
 import time
 import function.video_func
+import requests
 
 
 
@@ -33,6 +34,11 @@ def async_download_video(youtube_url, file_number):
     time.sleep(5)
     function.video_func.download_video(youtube_url, file_number)
     time.sleep(5)
+
+@celery.task()
+def post_toYolo(pk, video_path):
+    data = {'video_pk': pk, 's3_video': video_path}
+    return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
 
 
 # @task_postrun.connect

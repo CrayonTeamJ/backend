@@ -172,12 +172,14 @@ def signup():
 @app.route("/to_yolo")
 def dataToYolo():
     # 뭘 보내야 하나요 비디오 pk, 비디오 링크
-    video_pk = 16
+    video_pk = 19
     line = views.get_query_by_pk(video_pk)
     pk = line.video_pk
     video_path = line.s3_video
-    data = {'video_pk': pk, 's3_video': video_path}
-    return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
+    #data = {'video_pk': pk, 's3_video': video_path}
+    tasks.post_toYolo(pk, video_path)
+    return
+    # return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
 
 
 if __name__ == '__main__':
