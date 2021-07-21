@@ -13,6 +13,7 @@ from function.video_func import *
 from function.s3_control import *
 from flask_celery import make_celery
 import requests
+from pytube import YouTube
 
 import views
 
@@ -82,18 +83,23 @@ def video_input():
 
     elif request.form['video_type'] == "0":
         Your_input = request.form['video_url']
+        try:
+            yt = YouTube(Your_input)
+        except:
+            return make_response(jsonify({'Result': 'false'}), 202)
+
         video_filename = 'video' + str(file_number_inside) + '.mp4'
         tasks.async_download_video(Your_input, file_number_inside)
         upload_blob_file('./data/video' + str(file_number_inside) +
-                         '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
+                         '-0.mp4', 'video/video' + str(file_number_inside) + '.mp4')
 
         tasks.async_download_audio(Your_input, file_number_inside)
         upload_blob_file('./data/audio' + str(file_number_inside) +
                          '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
         video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + \
-            str(file_number_inside) + '.mp3'
+        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
         os.remove('./data/video' + str(file_number_inside) + '.mp4')
+        os.remove('./data/video' + str(file_number_inside) + '-0.mp4')
         os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
         video_pk = views.path_by_local(
