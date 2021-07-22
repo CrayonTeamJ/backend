@@ -31,10 +31,9 @@ def async_download_audio(youtube_url, file_number):
 
 @celery.task()
 def async_download_video(youtube_url, file_number):
-    time.sleep(5)
-    function.video_func.download_video(youtube_url, file_number)
-    time.sleep(5)
-
+    
+    return function.video_func.download_video(youtube_url, file_number)
+    
 @celery.task()
 def post_toYolo(pk, video_path):
     data = {'video_pk': pk, 's3_video': video_path}
