@@ -19,7 +19,7 @@ from pytube import YouTube
 from flask_pymongo import PyMongo
 import views
 import time
-
+from elasticsearch import Elasticsearch
 
 
 
@@ -89,11 +89,11 @@ def video_input():
 
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
-        print('Your_input: ', Your_input)
-        print('=====================')
+        # print('Your_input: ', Your_input)
+        # print('=====================')
         video_filename = 'video' + str(file_number_inside) + '.mp4'
-        print('video_filename: ', video_filename)
-        print('======================')
+        # print('video_filename: ', video_filename)
+        # print('======================')
         # video_filename=secure_filename(Your_input.filename)
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
@@ -246,9 +246,57 @@ def dataToYolo():
 @app.route('/api/search', methods=['GET'])
 def search():
 
-    print(request.args.to_dict())
+    # print(request.args.to_dict())
+    req_query= request.args.to_dict()
+    searchaud= req_query['searchaud']
+    searchvid= req_query['searchvid']
+    searchtype= req_query['searchtype']
+    video_id= req_query['id']
+    
+
+    if searchtype == 'image':
+        #image search
+        searchvid = '오류방지용'
+
+    elif searchtype == 'audio':
+
+        es = Elasticsearch('http://elasticsearch:9200')
+        
+        #mongo db에서 가져오기(index)
+        # index = [검색할_인덱스]
+        # query_body = [검색할_쿼리문]
+
+# video_pk가 18이고 sentence에 “고양이”가 나오는 start time을 말해줘!
+        query= {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "video_number": video_id
+                            }
+                        },
+                            {
+                            "match": {
+                                "sentence_list.sentence": searchaud
+                            }
+                        }
+                    ]
+                }
+            },
+            "_source": ["start_time"]
+        }
+        query_body = json.loads(query)
+        
+
+        res = es.search(index='voicedb.voice_files_list', body=query_body)
+        # res에 검색 결과가 담겨져 있다
+
     return make_response(request.args.to_dict(), 200)
 
+
+
+# "GET /api/search?searchaud=인물검색&searchtype=1 HTTP/1.1"
 
 
 if __name__ == '__main__':
