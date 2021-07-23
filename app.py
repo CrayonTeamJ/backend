@@ -19,7 +19,7 @@ from pytube import YouTube
 from flask_pymongo import PyMongo
 import views
 import time
-# from elasticsearch import Elasticsearch
+
 
 
 app = Flask(__name__)
@@ -95,11 +95,7 @@ def video_input():
 
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
-        # print('Your_input: ', Your_input)
-        # print('=====================')
         video_filename = 'video' + str(file_number_inside) + '.mp4'
-        # print('video_filename: ', video_filename)
-        # print('======================')
         # video_filename=secure_filename(Your_input.filename)
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
@@ -116,10 +112,12 @@ def video_input():
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
         video_pk_g = video_pk
-        
-        post_result = clova(audio_path, lang)
+
         #send result to model server
         send_to_yolo(video_path, video_pk)
+        
+        pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
+        post_result = to_json(pre_result)
         save_audio_result_to_mongo(video_pk, post_result)
 
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
@@ -155,7 +153,8 @@ def video_input():
         # send result to model server
         send_to_yolo(video_path, video_pk)
 
-        post_result = clova(audio_path, lang)
+        pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
+        post_result = to_json(pre_result)
         save_audio_result_to_mongo(video_pk, post_result)
 
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
@@ -232,12 +231,12 @@ def signup():
 
 def send_to_yolo(video_path, video_pk):
     data = {"video_path": video_path, "video_pk": video_pk}
-    headers = {'Content-Type': 'application/json'}
-    response = requests.post('http://localhost:5050/to_yolo', headers=headers, data=data, verify=False)
-    if response.ok:
-        pass
-    else:
-        print(response.json())
+    # headers = {'Content-Type': 'application/json'}
+    response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
+    # if response.ok:
+    #     pass
+    # else:
+    #     print(response.json())
     # return requests.post('http://localhost:5001/to_yolo', json=data).content
     
 
@@ -257,6 +256,8 @@ def search():
     # elif searchtype == 'audio':
 
     return make_response(request.args.to_dict(), 200)
+
+
 
 # "GET /api/search?searchaud=인물검색&searchtype=1 HTTP/1.1"
 
