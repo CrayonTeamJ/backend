@@ -120,8 +120,7 @@ def video_input():
         #send result to model server
         send_to_yolo(video_path, video_pk)
         
-        pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
-        post_result = to_json(pre_result)
+        post_result = clova(audio_path, lang)
         save_audio_result_to_mongo(video_pk, post_result)
 
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
@@ -157,8 +156,7 @@ def video_input():
         # send result to model server
         send_to_yolo(video_path, video_pk)
 
-        pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
-        post_result = to_json(pre_result)
+        post_result = clova(audio_path, lang)
         save_audio_result_to_mongo(video_pk, post_result)
 
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
@@ -245,6 +243,7 @@ def send_to_yolo(video_path, video_pk):
     
 
 from img_search import *
+from aud_search import *
 
 @app.route('/api/search', methods=['GET'])
 def search():
@@ -252,12 +251,13 @@ def search():
     video_id= req_query['id']
     searchtype= req_query['searchtype']
     search_img= req_query['search_img']
-    serach_aud= req_query['serach_aud']
+    search_aud= req_query['search_aud']
     
-    # if searchtype == 'image':
-    #     image_search(video_id, search_img)
+    if searchtype == 'image':
+        image_search(video_id, search_img)
     
     # elif searchtype == 'audio':
+    #     audio_search(video_id, search_aud)
 
     return make_response(request.args.to_dict(), 200)
 
