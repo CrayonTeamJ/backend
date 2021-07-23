@@ -13,7 +13,6 @@ from function.video_func import *
 from function.s3_control import *
 from function.clova_func import *
 from function.trans import *
-from img_search import *
 from flask_celery import make_celery
 import requests
 from pytube import YouTube
@@ -21,7 +20,6 @@ from flask_pymongo import PyMongo
 import views
 import time
 # from elasticsearch import Elasticsearch
-
 
 
 app = Flask(__name__)
@@ -35,6 +33,7 @@ celery = make_celery(app)
 app.config["MONGO_URI"] = "mongodb+srv://Crayon:pc2Af0vKZWbkT7GL@clustercrayon.lij0j.mongodb.net/voicedb?retryWrites=true&w=majority"
 mongodb_client = PyMongo(app)
 coll = mongodb_client.db.voice_files_list
+coll2 = mongodb_client.db.video_files_list
 
 
 def save_audio_result_to_mongo(video_pk, post_result):
@@ -53,7 +52,6 @@ def clova(audio_path, lang):
     
 
     return post_result
-
 
 #task
 import tasks
@@ -222,7 +220,6 @@ def signup():
     else:
         return make_response(jsonify({'Result': 'Success'}), 200)
 
-
 # @app.route("/to_yolo")
 # def dataToYolo():
 #     # 뭘 보내야 하나요 비디오 pk, 비디오 링크
@@ -242,7 +239,9 @@ def send_to_yolo(video_path, video_pk):
     else:
         print(response.json())
     # return requests.post('http://localhost:5001/to_yolo', json=data).content
+    
 
+from img_search import *
 
 @app.route('/api/search', methods=['GET'])
 def search():
@@ -252,36 +251,12 @@ def search():
     search_img= req_query['search_img']
     serach_aud= req_query['serach_aud']
     
-    if searchtype == 'image':
-        image_search(video_id, search_img)
-
-
-    # print(request.args.to_dict())
-    req_query= request.args.to_dict()
-    searchaud= req_query['searchaud']
-    # searchvid= req_query['searchvid']
-    searchtype= req_query['searchtype']
-    video_id= req_query['id']
+    # if searchtype == 'image':
+    #     image_search(video_id, search_img)
     
-
-#     if searchtype == 'image':
-#         #image search
-
-#     elif searchtype == 'audio':
-
-#         es = Elasticsearch('http://elasticsearch:9200')
-        
-#         #mongo db에서 가져오기(index)
-#         # index = [검색할_인덱스]
-#         # query_body = [검색할_쿼리문]
-        
-
-#         res = es.search(index='voicedb.voice_files_list', body=query_body)
-#         # res에 검색 결과가 담겨져 있다
+    # elif searchtype == 'audio':
 
     return make_response(request.args.to_dict(), 200)
-
-
 
 # "GET /api/search?searchaud=인물검색&searchtype=1 HTTP/1.1"
 
