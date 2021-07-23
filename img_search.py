@@ -3,15 +3,17 @@ from app import coll2
 def image_search(video_id, search_img):
     keyword = search_img
 
-    #검색 키워드 목록
-    0 = ['suga','sugar','슈가', '윤기', '민윤기']
-    1 = ['jungkook', '정국', '전정국']
-    2 = ['colbert']
-    3 = ['jimin']
-    4 = ['rm']
-    5 = ['jin']
-    6 = ['v']
-    7 = ['jhope']
+    return coll2.find({"video_number": video_id})
+
+    # #검색 키워드 목록
+    # 0 = ['suga','sugar','슈가', '윤기', '민윤기']
+    # 1 = ['jungkook', '정국', '전정국']
+    # 2 = ['colbert']
+    # 3 = ['jimin']
+    # 4 = ['rm']
+    # 5 = ['jin']
+    # 6 = ['v']
+    # 7 = ['jhope']
 
     #영어일 경우 소문자로 변환
     for c in keyword:
@@ -21,7 +23,7 @@ def image_search(video_id, search_img):
 
     #클래스 당 몽고디비 검색 결과 가져오기
     # if keyword in 0:
-    #     res = coll2.find({"_id":0, "video_number": video_id, "detection_list["class"]:"0" )
+        coll2.find({"video_number": video_id}, {detection_list[{"class":'0'}]})
 
     # elif keyword in 1:
     #     coll2.find({'class':1})
