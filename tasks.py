@@ -1,5 +1,3 @@
-
-from celery.signals import task_postrun
 import models
 import views
 from flask_celery import make_celery
