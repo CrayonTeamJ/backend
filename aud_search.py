@@ -2,7 +2,7 @@ from elasticsearch import Elasticsearch
 import json
 from app import coll
 
-def audio_search(coll):
+def audio_search(video_id, search_aud):
     es = Elasticsearch('http://elasticsearch:9200')
     
     #mongo db에서 가져오기(index)
@@ -22,7 +22,7 @@ def audio_search(coll):
                     },
                         {
                         "match": {
-                            "sentence_list.sentence": searchaud
+                            "sentence_list.sentence": search_aud
                         }
                     }
                 ]
@@ -30,10 +30,13 @@ def audio_search(coll):
         },
         "_source": ["start_time"]
     }
+
     query_body = json.loads(query)
 
     res = es.search(index='', body=query_body)
-    # res에 검색 결과가 담겨져 있다             
+    # res에 검색 결과가 담겨져 있다           
+
+    return res  
 
 
-coll.find({ $and: [{video_number:video_pk}, {detection_list.class:0}]}).pretty()
+# coll.find({ $and: [{video_number:video_pk}, {detection_list.class:0}]}).pretty()
