@@ -42,21 +42,37 @@ def download_audio(youtube_url, file_number):
         ydl.download([youtube_url])
         pass
 
-def download_video(youtube_url, file_number):
-    try:
-        yt = YouTube(youtube_url)
-    except:
-        return False
+# def download_video(youtube_url, file_number):
+#     try:
+#         yt = YouTube(youtube_url)
+#     except:
+#         return False
     
-    title = yt.title
-    length = yt.length
-    video_name = "./data/video" + str(file_number) + ".mp4"
-    after_cutting_name = "./data/video" + str(file_number) + "-0.mp4"
-    yt.streams.filter(res="720p" ,file_extension="mp4").order_by('resolution').desc().first().download('./data', filename= 'video' + str(file_number))
-    ffmpeg_extract_subclip(video_name, 0, length, targetname= after_cutting_name)
+#     title = yt.title
+#     length = yt.length
+#     video_name = "./data/video" + str(file_number) + ".mp4"
+#     after_cutting_name = "./data/video" + str(file_number) + "-0.mp4"
+#     yt.streams.filter(res="720p" ,file_extension="mp4").order_by('resolution').desc().first().download('./data', filename= 'video' + str(file_number))
+#     ffmpeg_extract_subclip(video_name, 0, length, targetname= after_cutting_name)
 
-    pass
+#     pass
 
+
+def download_video(youtube_url, file_number):
+    ydl_opts = {
+        'nocheckcertificate': True,
+        'videoformat' : "mp4",
+      	'outtmpl': './data/video' + str(file_number) + '.mp4',
+        'format': 'bestvideo/best[height<=720]',}
+    
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(youtube_url, download=False)
+        video_title = info_dict.get('title', None)
+        video_duration = info_dict.get('duration', None)
+        ydl.download([youtube_url])
+    return video_duration, video_title
+
+<<<<<<< HEAD
 def download_video_dl(youtube_url, file_number):
     ydl_opts = {
         'nocheckcertificate': True,
@@ -71,6 +87,8 @@ def download_video_dl(youtube_url, file_number):
         ydl.download([youtube_url])
     return video_duration
 
+=======
+>>>>>>> dev
 def url_valid(youtube_url):
     extractors = youtube_dl.extractor.gen_extractors()
     for e in extractors:
