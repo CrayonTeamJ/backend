@@ -94,10 +94,6 @@ def video_input():
     # audio_path = 0
     # video_pk = 0
 
-    print("print request=====================")
-    print(request.form)
-    print("print request=====================")
-
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
         # print('Your_input: ', Your_input)
@@ -121,15 +117,10 @@ def video_input():
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
         video_pk_g = video_pk
-
-
+        
         post_result = clova(audio_path, lang)
-        # pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
-        # # print('type_of_preresult:', type(pre_result))
-
-        # post_result = to_json(pre_result)
-        # # print('type_of_postresult:', type(post_result))
-
+        #send result to model server
+        send_to_yolo(video_path, video_pk)
         save_audio_result_to_mongo(video_pk, post_result)
 
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
@@ -148,7 +139,6 @@ def video_input():
                          '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
         video_duration = video_info[0]
         video_title = video_info[1]
-        print(video_duration, video_title)
 
         # 클로바 실행시 아래 두 줄 주석 취소하기
         tasks.async_download_audio(Your_input, file_number_inside)
@@ -162,23 +152,12 @@ def video_input():
 
         video_pk = views.path_by_local(
             True, video_filename, video_path, audio_path)
-        print('='*50)
-        print(audio_path)
-        print('='*50)
+        
+        # send result to model server
+        send_to_yolo(video_path, video_pk)
 
         post_result = clova(audio_path, lang)
-
-        # pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
-        # # time.sleep(15)
-        # print('pre_result:', pre_result)
-        # # print('type_of_preresult:', type(pre_result))
-
-        # post_result = to_json(pre_result)
-        # print('post_result:', post_result)
-        # # print('type_of_postresult:', type(post_result))
-
         save_audio_result_to_mongo(video_pk, post_result)
-        
 
         return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
@@ -217,12 +196,11 @@ def login():
 
         resp = jsonify(Result='success', access_expire=JWT_ACCESS_TOKEN_EXPIRES, access_token=create_access_token(identity=userform['userID']),
                        Nickname=nick, Profile=profile, isLogin=True)
-        #set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp, 200
 
-        # return make_response(jsonify(Result = "success", access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
-        # return make_response(jsonify({'Result' : 'Login_Success',}, access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
+        return make_response(jsonify(Result = "success", access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
+        return make_response(jsonify({'Result' : 'Login_Success',}, access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
 
     else:
         return make_response(jsonify({'Result': 'fail'}), 203)
@@ -244,16 +222,25 @@ def signup():
         return make_response(jsonify({'Result': 'Success'}), 200)
 
 
-@app.route("/to_yolo")
-def dataToYolo():
-    # 뭘 보내야 하나요 비디오 pk, 비디오 링크
-    video_pk = 16
-    line = views.get_query_by_pk(video_pk)
-    pk = line.video_pk
-    video_path = line.s3_video
-    data = {'video_pk': pk, 's3_video': video_path}
-    return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
+# @app.route("/to_yolo")
+# def dataToYolo():
+#     # 뭘 보내야 하나요 비디오 pk, 비디오 링크
+#     video_pk = 16
+#     line = views.get_query_by_pk(video_pk)
+#     pk = line.video_pk
+#     video_path = line.s3_video
+#     data = {'video_pk': pk, 's3_video': video_path}
+#     return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
 
+def send_to_yolo(video_path, video_pk):
+    data = {"video_path": video_path, "video_pk": video_pk}
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post('http://localhost:5050/to_yolo', headers=headers, data=data, verify=False)
+    if response.ok:
+        pass
+    else:
+        print(response.json())
+    # return requests.post('http://localhost:5001/to_yolo', json=data).content
 
 
 @app.route('/api/search', methods=['GET'])
