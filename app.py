@@ -249,7 +249,7 @@ from aud_search import *
 def search():
     req_query= request.args.to_dict()
     video_id= req_query['id']
-    searchtype= req_query['searchtype']
+    searchtype= req_query['search_type']
     search_img= req_query['search_img']
     search_aud= req_query['search_aud']
     

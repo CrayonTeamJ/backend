@@ -1,9 +1,30 @@
 from app import coll2
+import pymongo
 
 def image_search(video_id, search_img):
     keyword = search_img
+  
+    res = coll2.find({"$and" : [{"video_number":video_id}, {"detection_list":{"$elemMatch":{"class":0}} }]})
+    # res = coll2.find({ {video_number:video_id}, {detection_list:{ $elemMatch: { class: 0 } } } }).pretty()
+    # res = coll2.find(
+    #     {
+    #         "video_number":video_id,
+    #         "detection_list": {
+    #         "$elemMatch": { "class": 0 }
+    #         }
+    #     },
+    #     {
+    #         "video_number": True,
+    #         "detection_list": {
+    #         "$elemMatch": { "class": 0 }
+    #     },
+    #         "detection_list.start_time": True,
+    #         "detection_list.class": True
+    #     }
+    # )
 
-    return coll2.find({"video_number": video_id})
+
+
 
     # #검색 키워드 목록
     # 0 = ['suga','sugar','슈가', '윤기', '민윤기']
@@ -16,14 +37,14 @@ def image_search(video_id, search_img):
     # 7 = ['jhope']
 
     #영어일 경우 소문자로 변환
-    for c in keyword:
-        if not ord('A')<=ord(c)<=ord('z'):
-            break
-        keyword.lower()
+    # for c in keyword:
+    #     if not ord('A')<=ord(c)<=ord('z'):
+    #         break
+    #     keyword.lower()
 
     #클래스 당 몽고디비 검색 결과 가져오기
     # if keyword in 0:
-        coll2.find({"video_number": video_id}, {detection_list[{"class":'0'}]})
+        # coll2.find({"video_number": video_id}, {detection_list[{"class":'0'}]})
 
     # elif keyword in 1:
     #     coll2.find({'class':1})
