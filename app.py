@@ -99,6 +99,7 @@ def video_input():
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
         video_filename = 'video' + str(file_number_inside) + '.mp4'
+        video_title = request.files['file'].name
         # video_filename=secure_filename(Your_input.filename)
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
@@ -151,7 +152,7 @@ def video_input():
         os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
         video_pk = views.path_by_local(
-            True, video_filename, video_path, audio_path)
+            True, video_title, video_filename, video_path, audio_path)
         
         # send result to model server
         send_to_yolo(video_path, video_pk)

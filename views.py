@@ -60,8 +60,8 @@ def get_profile(userID):
     profile = userID.user_prof
     return profile
         
-def path_by_local(category, s3_title, video_path, audio_path):
-    new_file = models.video_info(category=category, s3_title=s3_title, s3_video=video_path, s3_audio=audio_path)
+def path_by_local(category, video_title, s3_title, video_path, audio_path):
+    new_file = models.video_info(category=category, video_title=video_title, s3_title=s3_title, s3_video=video_path, s3_audio=audio_path)
     db.session.add(new_file)
     db.session.commit()
     by_title = models.video_info.query.filter(s3_title == models.video_info.s3_title).first()

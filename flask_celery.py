@@ -6,11 +6,7 @@ import celery
 BROKER_URL = 'amqp://guest:guest@rabbitmq:5672/'
 
 def make_celery(app):
-<<<<<<< HEAD
-    cell =  Celery(app.import_name, broker=BROKER_URL, backend='amqp://admin:admin@localhost/vhost-01')
-=======
     cell =  Celery(app.import_name, broker=BROKER_URL, backend='amqp://guest:guest@rabbitmq:5672/')
->>>>>>> dev
     TaskBase = cell.Task
 
     class ContextTask(TaskBase):

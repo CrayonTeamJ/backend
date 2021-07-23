@@ -72,7 +72,6 @@ def download_video(youtube_url, file_number):
         ydl.download([youtube_url])
     return video_duration, video_title
 
-<<<<<<< HEAD
 def download_video_dl(youtube_url, file_number):
     ydl_opts = {
         'nocheckcertificate': True,
@@ -87,8 +86,6 @@ def download_video_dl(youtube_url, file_number):
         ydl.download([youtube_url])
     return video_duration
 
-=======
->>>>>>> dev
 def url_valid(youtube_url):
     extractors = youtube_dl.extractor.gen_extractors()
     for e in extractors:
