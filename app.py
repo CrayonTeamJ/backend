@@ -13,6 +13,7 @@ from function.video_func import *
 from function.s3_control import *
 from function.clova_func import *
 from function.trans import *
+from img_search import *
 from flask_celery import make_celery
 import requests
 from pytube import YouTube
@@ -233,6 +234,15 @@ def send_to_yolo(video_path, video_pk):
 
 @app.route('/api/search', methods=['GET'])
 def search():
+    req_query= request.args.to_dict()
+    video_id= req_query['id']
+    searchtype= req_query['searchtype']
+    search_img= req_query['search_img']
+    serach_aud= req_query['serach_aud']
+    
+    if searchtype == 'image':
+        image_search(video_id, search_img)
+
 
     print(request.args.to_dict())
     return make_response(request.args.to_dict(), 200)
