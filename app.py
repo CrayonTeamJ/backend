@@ -19,7 +19,7 @@ from pytube import YouTube
 from flask_pymongo import PyMongo
 import views
 import time
-from elasticsearch import Elasticsearch
+# from elasticsearch import Elasticsearch
 
 
 
@@ -41,6 +41,17 @@ def save_audio_result_to_mongo(video_pk, post_result):
         'video_number': video_pk,
         'sentence_list': post_result['sentence_list']
     })
+
+
+def clova(audio_path, lang):
+    pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
+        # print('type_of_preresult:', type(pre_result))
+    
+    post_result = to_json(pre_result)
+        # print('type_of_postresult:', type(post_result))
+    
+
+    return post_result
 
 
 #task
@@ -110,13 +121,14 @@ def video_input():
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
         video_pk_g = video_pk
-        
-        pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
-        # print('type_of_preresult:', type(pre_result))
 
 
-        post_result = to_json(pre_result)
-        # print('type_of_postresult:', type(post_result))
+        post_result = clova(audio_path, lang)
+        # pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
+        # # print('type_of_preresult:', type(pre_result))
+
+        # post_result = to_json(pre_result)
+        # # print('type_of_postresult:', type(post_result))
 
         save_audio_result_to_mongo(video_pk, post_result)
 
@@ -154,15 +166,16 @@ def video_input():
         print(audio_path)
         print('='*50)
 
-        pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
-        # time.sleep(15)
-        print('pre_result:', pre_result)
-        # print('type_of_preresult:', type(pre_result))
+        post_result = clova(audio_path, lang)
 
+        # pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
+        # # time.sleep(15)
+        # print('pre_result:', pre_result)
+        # # print('type_of_preresult:', type(pre_result))
 
-        post_result = to_json(pre_result)
-        print('post_result:', post_result)
-        # print('type_of_postresult:', type(post_result))
+        # post_result = to_json(pre_result)
+        # print('post_result:', post_result)
+        # # print('type_of_postresult:', type(post_result))
 
         save_audio_result_to_mongo(video_pk, post_result)
         
@@ -249,48 +262,25 @@ def search():
     # print(request.args.to_dict())
     req_query= request.args.to_dict()
     searchaud= req_query['searchaud']
-    searchvid= req_query['searchvid']
+    # searchvid= req_query['searchvid']
     searchtype= req_query['searchtype']
     video_id= req_query['id']
     
 
-    if searchtype == 'image':
-        #image search
-        searchvid = '오류방지용'
+#     if searchtype == 'image':
+#         #image search
 
-    elif searchtype == 'audio':
+#     elif searchtype == 'audio':
 
-        es = Elasticsearch('http://elasticsearch:9200')
+#         es = Elasticsearch('http://elasticsearch:9200')
         
-        #mongo db에서 가져오기(index)
-        # index = [검색할_인덱스]
-        # query_body = [검색할_쿼리문]
-
-# video_pk가 18이고 sentence에 “고양이”가 나오는 start time을 말해줘!
-        query= {
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "match": {
-                                "video_number": video_id
-                            }
-                        },
-                            {
-                            "match": {
-                                "sentence_list.sentence": searchaud
-                            }
-                        }
-                    ]
-                }
-            },
-            "_source": ["start_time"]
-        }
-        query_body = json.loads(query)
+#         #mongo db에서 가져오기(index)
+#         # index = [검색할_인덱스]
+#         # query_body = [검색할_쿼리문]
         
 
-        res = es.search(index='voicedb.voice_files_list', body=query_body)
-        # res에 검색 결과가 담겨져 있다
+#         res = es.search(index='voicedb.voice_files_list', body=query_body)
+#         # res에 검색 결과가 담겨져 있다
 
     return make_response(request.args.to_dict(), 200)
 
