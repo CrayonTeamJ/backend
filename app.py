@@ -89,7 +89,11 @@ def video_input():
 
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
+        print('Your_input: ', Your_input)
+        print('=====================')
         video_filename = 'video' + str(file_number_inside) + '.mp4'
+        print('video_filename: ', video_filename)
+        print('======================')
         # video_filename=secure_filename(Your_input.filename)
         file_path = os.path.join('./data/', video_filename)
         Your_input.save(file_path)
