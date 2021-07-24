@@ -33,6 +33,7 @@ app.config["MONGO_URI"] = "mongodb+srv://Crayon:pc2Af0vKZWbkT7GL@clustercrayon.l
 mongodb_client = PyMongo(app)
 coll = mongodb_client.db.voice_files_list
 coll2 = mongodb_client.db.video_files_list
+coll3 = mongodb_client.db.images_coll
 
 
 def save_audio_result_to_mongo(video_pk, post_result):
@@ -255,49 +256,50 @@ def send_to_yolo(video_path, video_pk):
 #     app.run(debug=True)
 
 
-from pprint import pprint
-
-# docs_list  = list(coll2.find({"video_pk": video_id})
-# return json.dumps(docs_list, default=json_util.default)
 
 @app.route('/api/videosearch', methods=['GET'])
-# def search():
-#     req_query= request.args.to_dict()
-#     video_id= req_query['id']
-#     cursor = coll2.find( {"video_number": video_id})
-#     # json_export = json.dumps(cursor) # return JSON data
-#     # return json_export
-#     list = []
-#     for inventory in cursor:
-#         list.append(pprint(inventory))
-#     return json.dumps(list)
-
-# def get():
-#     req_query= request.args.to_dict()
-#     video_id= req_query['id']
-#     documents = coll2.find({video_number: video_id})
-#     response = []
-#     for document in documents:
-#         document['_id'] = str(document['_id'])
-#         response.append(document)
-#     return json.dumps(response)
 
 def get():
     video_id = int(request.args.get('id'))
-    # final = []
-    # output = []
-    # output2 = []
-    # for s in coll2.find({"video_number":video_id}):
-    #     output.append({'video_number' : s['video_number']})
-    #     output2.append({'detection_list' : s['detection_list']})
-    # final.append(output)
-    # final.append(output2)
-    # return jsonify({'result' : final})
 
-    output = []
+    detected_seconds = []
     for s in coll2.find({"video_number":video_id}):
         detection_list = s['detection_list']
         for key in detection_list:
             if key['class'] == 0:
-                output.append(key['start_time'])
-    return jsonify({'result' : output})
+                detected_seconds.append(key['start_time'])
+
+    start_and_end = groupSequence(detected_seconds)
+
+    path_and_time = []
+    for s in coll3.find({"video_pk":video_id}):
+        image_list = s['image_list']
+        for key in image_list:
+            path_and_time.append([key['time'], key['path']])
+
+    start_and_end_and_path = []
+    for i in range(len(start_and_end)):
+        for j in range(len(path_and_time)):
+            if start_and_end[i][0] == path_and_time[j][0]:
+                start_and_end_and_path.append([start_and_end[i][0], start_and_end[i][-1], path_and_time[j][-1]])
+
+    result_list = []
+    for i in start_and_end_and_path:
+        dictionary = {'start': i[0], 'end': i[1], 'length': i[1]-i[0], 'thumbnail': i[-1]}
+        dictionary_copy = dictionary.copy()
+        result_list.append(dictionary_copy)
+
+    return jsonify({'result': "", 'video_info': "", 'search_info': "", 'res_info': result_list})
+
+
+
+def groupSequence(lst):
+    res = [[lst[0]]]
+    for i in range(1, len(lst)):
+        if lst[i-1]+1 == lst[i]:
+            res[-1].append(lst[i])
+        else:
+            res.append([lst[i]])
+    new = [s for s in res if len(s) > 5]
+    new2 = [(i[0], i[-1]) for i in new]
+    return new2
