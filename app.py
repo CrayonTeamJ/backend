@@ -221,50 +221,83 @@ def signup():
     else:
         return make_response(jsonify({'Result': 'Success'}), 200)
 
-# @app.route("/to_yolo")
-# def dataToYolo():
-#     # 뭘 보내야 하나요 비디오 pk, 비디오 링크
-#     video_pk = 16
-#     line = views.get_query_by_pk(video_pk)
-#     pk = line.video_pk
-#     video_path = line.s3_video
-#     data = {'video_pk': pk, 's3_video': video_path}
-#     return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
+
 
 def send_to_yolo(video_path, video_pk):
     data = {"video_path": video_path, "video_pk": video_pk}
-    # headers = {'Content-Type': 'application/json'}
     response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
-    # if response.ok:
-    #     pass
-    # else:
-    #     print(response.json())
-    # return requests.post('http://localhost:5001/to_yolo', json=data).content
     
 
-from img_search import *
-from aud_search import *
+# from img_search import *
 
-@app.route('/api/search', methods=['GET'])
-def search():
-    req_query= request.args.to_dict()
-    video_id= req_query['id']
-    searchtype= req_query['search_type']
-    search_img= req_query['search_img']
-    search_aud= req_query['search_aud']
+# @app.route('/api/search', methods=['GET'])
+# def search():
+#     req_query= request.args.to_dict()
+#     video_id= req_query['id']
+#     searchtype= req_query['search_type']
+#     search_img= req_query['search_img']
+#     search_aud= req_query['search_aud']
     
-    if searchtype == 'image':
-        image_search(video_id, search_img)
+#     if searchtype == 'image':
+#         image_search(video_id, search_img)
     
-    # elif searchtype == 'audio':
-    #     audio_search(video_id, search_aud)
+#     # elif searchtype == 'audio':
+#     #     audio_search(video_id, search_aud)
 
-    return make_response(request.args.to_dict(), 200)
+#     return make_response(request.args.to_dict(), 200)
 
 
 
 # "GET /api/search?searchaud=인물검색&searchtype=1 HTTP/1.1"
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
+
+from pprint import pprint
+
+# docs_list  = list(coll2.find({"video_pk": video_id})
+# return json.dumps(docs_list, default=json_util.default)
+
+@app.route('/api/videosearch', methods=['GET'])
+# def search():
+#     req_query= request.args.to_dict()
+#     video_id= req_query['id']
+#     cursor = coll2.find( {"video_number": video_id})
+#     # json_export = json.dumps(cursor) # return JSON data
+#     # return json_export
+#     list = []
+#     for inventory in cursor:
+#         list.append(pprint(inventory))
+#     return json.dumps(list)
+
+# def get():
+#     req_query= request.args.to_dict()
+#     video_id= req_query['id']
+#     documents = coll2.find({video_number: video_id})
+#     response = []
+#     for document in documents:
+#         document['_id'] = str(document['_id'])
+#         response.append(document)
+#     return json.dumps(response)
+
+def get():
+    video_id = int(request.args.get('id'))
+    # final = []
+    # output = []
+    # output2 = []
+    # for s in coll2.find({"video_number":video_id}):
+    #     output.append({'video_number' : s['video_number']})
+    #     output2.append({'detection_list' : s['detection_list']})
+    # final.append(output)
+    # final.append(output2)
+    # return jsonify({'result' : final})
+
+    output = []
+    for s in coll2.find({"video_number":video_id}):
+        detection_list = s['detection_list']
+        for key in detection_list:
+            if key['class'] == 0:
+                output.append(key['start_time'])
+    return jsonify({'result' : output})
