@@ -28,17 +28,20 @@ class video_info(db.Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     category = db.Column(db.Boolean, nullable=False)
     video_title = db.Column(db.String(150))
+    video_duration = db.Column(db.String(150))
     s3_title = db.Column(db.String(150))
     youtube_url = db.Column(db.String(150))
     s3_video = db.Column(db.String(150))
     s3_audio = db.Column(db.String(150))
     
-    def __init__(self, category, video_title,s3_title, s3_video, s3_audio):
+    def __init__(self, category, video_title, video_duration, s3_title, s3_video, s3_audio):
         self.category = category
         self.video_title = video_title
+        self.video_duration = video_duration
         self.s3_title = s3_title
         self.s3_video = s3_video
         self.s3_audio = s3_audio
+
 
 class image_info(db.Model):
     __tablename__="image_info"
