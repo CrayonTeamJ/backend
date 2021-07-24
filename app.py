@@ -22,6 +22,7 @@ import time
 import function
 
 app = Flask(__name__)
+app.config['JSON_SORT_KEYS']=False
 db = SQLAlchemy()
 migrate = Migrate()
 CORS(app, supports_credentials=True)  # 있어야 프런트와 통신 가능, 없으면 오류뜸
@@ -116,7 +117,7 @@ def video_input():
         os.remove('./data/audio' + str(file_number_inside) + '.mp3')
         video_pk = views.path_by_local(
             False, video_filename, video_path, audio_path)
-        video_pk_g = video_pk
+        # video_pk_g = video_pk
 
         #send result to model server
         send_to_yolo(video_path, video_pk)
@@ -200,9 +201,6 @@ def login():
         set_refresh_cookies(resp, refresh_token)
         return resp, 200
 
-        return make_response(jsonify(Result = "success", access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
-        return make_response(jsonify({'Result' : 'Login_Success',}, access_token = create_access_token(identity = userform['userID'], expires_delta = False)))
-
     else:
         return make_response(jsonify({'Result': 'fail'}), 203)
 
@@ -258,10 +256,13 @@ def send_to_yolo(video_path, video_pk):
 
 
 @app.route('/api/videosearch', methods=['GET'])
-
 def get():
     video_id = int(request.args.get('id'))
-
+    
+    total_len = 0
+    videos = views.get_video_info(video_id)
+    title, url, duration = videos[0], videos[1], videos[2]
+    
     detected_seconds = []
     for s in coll2.find({"video_number":video_id}):
         detection_list = s['detection_list']
@@ -285,12 +286,18 @@ def get():
 
     result_list = []
     for i in start_and_end_and_path:
+        total_len += (i[1]-i[0])
         dictionary = {'start': i[0], 'end': i[1], 'length': i[1]-i[0], 'thumbnail': i[-1]}
         dictionary_copy = dictionary.copy()
         result_list.append(dictionary_copy)
 
-    return jsonify({'result': "", 'video_info': "", 'search_info': "", 'res_info': result_list})
+    vid_info = {'title': title, 'video_length': duration, 'length':total_len, 's3_url': url}
 
+    #use when fail
+    # vid_info2 = {'title': title, 'video_length': duration, 'length': "0"}
+
+    return jsonify({'result': "success", 'video_info': vid_info, 'search_info': "", 'res_info': result_list})
+    # return jsonfiy({'result': "fail", 'video_info': vid_info2})
 
 
 def groupSequence(lst):
