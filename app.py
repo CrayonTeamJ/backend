@@ -101,6 +101,25 @@ def video_input():
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
         video_filename = 'video' + str(file_number_inside) + '.mp4'
+        video_title = request.files['file'].name
+        # video_filename=secure_filename(Your_input.filename)
+        file_path = os.path.join('./data/', video_filename)
+        Your_input.save(file_path)
+        mp4_to_mp3(file_path, file_number_inside)
+        # 클로바 실행시 아래 두 줄 주석 취소하기
+        # upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
+        # upload_blob_file('./data/audio' + str(file_number_inside) +
+                        #  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
+        video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
+        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+        os.remove('./data/'+video_filename)
+        os.remove('./data/audio' + str(file_number_inside) + '.mp3')
+        video_pk = views.path_by_local(
+            False, video_filename, video_path, audio_path)
+        # video_pk_g = video_pk
+
+        #send result to model server
+        send_to_yolo(video_path, video_pk)
         
         #이미 DB에 저장되어있으면 패스
         video_title = request.files['file'].filename
@@ -240,8 +259,6 @@ def send_to_yolo(video_path, video_pk):
     response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
     
 
-# from img_search import *
-
 # @app.route('/api/search', methods=['GET'])
 # def search():
 #     req_query= request.args.to_dict()
@@ -267,23 +284,23 @@ def send_to_yolo(video_path, video_pk):
 #     app.run(debug=True)
 
 
+from img_search import *
 
 @app.route('/api/videosearch', methods=['GET'])
 def get():
 
     video_id = int(request.args.get('id'))
+    keyword = request.args.get('search_img')
 
     total_len = 0
     videos = views.get_video_info(video_id)
     title, url, duration = videos[0], videos[1], videos[2]
 
     try:
-        detected_seconds = []
-        for s in coll2.find({"video_number":video_id}):
-            detection_list = s['detection_list']
-            for key in detection_list:
-                if key['class'] == 0:
-                    detected_seconds.append(key['start_time'])
+        detected_seconds = image_search(video_id, keyword)
+        if not detected_seconds:
+            vid_info = {'title': title, 'video_length': duration, 'length':total_len, 's3_url': url}
+            return jsonify({'result': "success", 'video_info': vid_info, 'res_info': detected_seconds}) 
 
         start_and_end = groupSequence(detected_seconds)
 
@@ -310,7 +327,7 @@ def get():
         return jsonify({'result': "success", 'video_info': vid_info, 'res_info': result_list})
     
     except:
-        vid_info2 = {'title': title, 'video_length': duration, 'length': "0"}
+        vid_info2 = {'title': title, 's3_url': url, 'video_length': duration, 'length': "0"}
         return jsonify({'result': "fail", 'video_info': vid_info2})
         
     #use when fail
