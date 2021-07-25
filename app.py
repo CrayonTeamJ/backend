@@ -54,6 +54,7 @@ def clova(audio_path, lang):
 
     return post_result
 
+
 #task
 import tasks
 JWT_COOKIE_SECURE = False  # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
@@ -110,8 +111,8 @@ def video_input():
         # upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
         # upload_blob_file('./data/audio' + str(file_number_inside) +
                         #  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
-        video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+        video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
+        audio_path = 'https://crayon-team-j.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
         os.remove('./data/'+video_filename)
         os.remove('./data/audio' + str(file_number_inside) + '.mp3')
         video_pk = views.path_by_local(
@@ -137,8 +138,8 @@ def video_input():
             upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
             upload_blob_file('./data/audio' + str(file_number_inside) +
                             '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
-            video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-            audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+            video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
+            audio_path = 'https://crayon-team-j.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
             os.remove('./data/'+video_filename)
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
             video_pk = views.path_by_local(False, video_title, video_duration, video_filename,video_path, audio_path)
@@ -179,8 +180,8 @@ def video_input():
 
             upload_blob_file('./data/audio' + str(file_number_inside) +
                             '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
-            video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-            audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+            video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
+            audio_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
             os.remove('./data/video' + str(file_number_inside) + '.mp4')
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
