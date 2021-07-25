@@ -1,4 +1,4 @@
-import models
+
 import views
 from flask_celery import make_celery
 from app import celery
@@ -54,6 +54,7 @@ def post_toYolo(pk, video_path):
 def slow_task(x):
 	time.sleep(x)
 	return x
+    
 
 
 @celery.task

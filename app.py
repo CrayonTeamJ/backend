@@ -101,31 +101,37 @@ def video_input():
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
         video_filename = 'video' + str(file_number_inside) + '.mp4'
-        video_title = request.files['file'].name
-        # video_filename=secure_filename(Your_input.filename)
-        file_path = os.path.join('./data/', video_filename)
-        Your_input.save(file_path)
-        mp4_to_mp3(file_path, file_number_inside)
-        # 클로바 실행시 아래 두 줄 주석 취소하기
-        # upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
-        # upload_blob_file('./data/audio' + str(file_number_inside) +
-                        #  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
-        video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + \
-            str(file_number_inside) + '.mp3'
-        os.remove('./data/'+video_filename)
-        os.remove('./data/audio' + str(file_number_inside) + '.mp3')
-        video_pk = views.path_by_local(
-            False, video_filename, video_path, audio_path)
-        # video_pk_g = video_pk
-
-        #send result to model server
-        send_to_yolo(video_path, video_pk)
         
-        post_result = clova(audio_path, lang)
-        save_audio_result_to_mongo(video_pk, post_result)
+        #이미 DB에 저장되어있으면 패스
+        video_title = request.files['file'].filename
+        try: 
+            views.find_duplicatuon(video_title)
+            id = views.find_duplicatuon(video_title)
+            return make_response(jsonify({'Result': 'Success', 'video_pk': id}), 200)
+        except:
+            # video_filename=secure_filename(Your_input.filename)
+            file_path = os.path.join('./data/', video_filename)
+            Your_input.save(file_path)
+            video_duration = vid_duration(file_path)
+            mp4_to_mp3(file_path, file_number_inside)
+            # 클로바 실행시 아래 두 줄 주석 취소하기
+            upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
+            upload_blob_file('./data/audio' + str(file_number_inside) +
+                            '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
+            video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
+            audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+            os.remove('./data/'+video_filename)
+            os.remove('./data/audio' + str(file_number_inside) + '.mp3')
+            video_pk = views.path_by_local(False, video_title, video_duration, video_filename,video_path, audio_path)
+            # video_pk_g = video_pk
+            make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
+            #send result to model server
+            send_to_yolo(video_path, video_pk)
+            
+            post_result = clova(audio_path, lang)
+            save_audio_result_to_mongo(video_pk, post_result)
 
-        return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
+            return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
     elif request.form['video_type'] == "0":
         # print(file_number_inside)
@@ -133,35 +139,42 @@ def video_input():
         validate = url_valid(Your_input)
         if validate == False:
             return make_response(jsonify({'Result': 'false'}), 202)
+        video_title = get_youtube_title(Your_input)
 
-        video_filename = 'video' + str(file_number_inside) + '.mp4'
-        # 클로바 실행시 아래 두 줄 주석 취소하기
-        video_info = tasks.async_download_video(Your_input, file_number_inside)
-        upload_blob_file('./data/video' + str(file_number_inside) +
-                         '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
-        video_duration = video_info[0]
-        video_title = video_info[1]
+        try: 
+            views.find_duplicatuon(video_title)
+            id = views.find_duplicatuon(video_title)
+            return make_response(jsonify({'Result': 'Success', 'video_pk': id}), 200)
+        except:
 
-        # 클로바 실행시 아래 두 줄 주석 취소하기
-        tasks.async_download_audio(Your_input, file_number_inside)
+            video_filename = 'video' + str(file_number_inside) + '.mp4'
+            video_info = tasks.async_download_video(Your_input, file_number_inside)
+            video_duration = video_info
 
-        upload_blob_file('./data/audio' + str(file_number_inside) +
-                          '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
-        video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-        audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
-        os.remove('./data/video' + str(file_number_inside) + '.mp4')
-        os.remove('./data/audio' + str(file_number_inside) + '.mp3')
+            upload_blob_file('./data/video' + str(file_number_inside) +
+                            '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
+            
 
-        video_pk = views.path_by_local(
-            True, video_title, video_filename, video_path, audio_path)
-        
-        # send result to model server
-        send_to_yolo(video_path, video_pk)
+            # 클로바 실행시 아래 두 줄 주석 취소하기
+            tasks.async_download_audio(Your_input, file_number_inside)
 
-        post_result = clova(audio_path, lang)
-        save_audio_result_to_mongo(video_pk, post_result)
+            upload_blob_file('./data/audio' + str(file_number_inside) +
+                            '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
+            video_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
+            audio_path = 'https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+            os.remove('./data/video' + str(file_number_inside) + '.mp4')
+            os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
-        return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
+            video_pk = views.path_by_local(
+                True, video_title, video_duration , video_filename,  video_path, audio_path)
+            
+            # send result to model server
+            send_to_yolo(video_path, video_pk)
+
+            post_result = clova(audio_path, lang)
+            save_audio_result_to_mongo(video_pk, post_result)
+
+            return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
 
 @app.route('/api/refresh', methods=['GET'])

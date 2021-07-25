@@ -4,11 +4,10 @@ from sqlalchemy import sql, func, select
 from sqlalchemy.sql.expression import false
 os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 import models
-#from app import app, db
+from app import app, db
 import bcrypt
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
 userDB = models.user_info
 
 
@@ -60,8 +59,8 @@ def get_profile(userID):
     profile = userID.user_prof
     return profile
         
-def path_by_local(category, video_title, s3_title, video_path, audio_path):
-    new_file = models.video_info(category=category, video_title=video_title, s3_title=s3_title, s3_video=video_path, s3_audio=audio_path)
+def path_by_local(category, video_title, video_duration, s3_title, video_path, audio_path):
+    new_file = models.video_info(category=category, video_title=video_title, video_duration = video_duration, s3_title=s3_title, s3_video=video_path, s3_audio=audio_path)
     db.session.add(new_file)
     db.session.commit()
     by_title = models.video_info.query.filter(s3_title == models.video_info.s3_title).order_by(models.video_info.id.desc()).first()
@@ -69,8 +68,13 @@ def path_by_local(category, video_title, s3_title, video_path, audio_path):
     return id
 
 def get_video_info(video_id):
-    by_title = models.video_info.query.filter(video_id == models.video_info.id).order_by(models.video_info.id.desc()).first()
-    title = by_title.video_title
-    path = by_title.s3_video
-    duration = by_title.video_duration
+    by_id = models.video_info.query.filter(video_id == models.video_info.id).order_by(models.video_info.id.desc()).first()
+    title = by_id.video_title
+    path = by_id.s3_video
+    duration = by_id.video_duration
     return title, path, duration
+
+def find_duplicatuon(video_title):
+    by_title = models.video_info.query.filter(video_title == models.video_info.video_title).order_by(models.video_info.id.desc()).first()
+    id = by_title.id
+    return id

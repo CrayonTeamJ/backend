@@ -5,6 +5,7 @@ from moviepy.editor import *
 import ssl
 from pytube.cli import on_progress
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+import subprocess
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -70,7 +71,7 @@ def download_video(youtube_url, file_number):
         video_title = info_dict.get('title', None)
         video_duration = info_dict.get('duration', None)
         ydl.download([youtube_url])
-    return video_duration, video_title
+    return video_duration
 
 def download_video_dl(youtube_url, file_number):
     ydl_opts = {
@@ -93,3 +94,18 @@ def url_valid(youtube_url):
             return True
     return False
 
+def vid_duration(video_file):
+    duration = subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', video_file])
+    return duration.decode()
+
+
+def get_youtube_title(url):
+    ydl_opts = {
+        'nocheckcertificate': True,
+        }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(url, download=False)
+        video_title = info_dict.get('title', None)
+
+    return video_title
+    
