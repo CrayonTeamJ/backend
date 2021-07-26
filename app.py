@@ -104,26 +104,6 @@ def video_input():
     if request.form['video_type'] == "1":
         Your_input = request.files['file']
         video_filename = 'video' + str(file_number_inside) + '.mp4'
-        video_title = request.files['file'].name
-        # video_filename=secure_filename(Your_input.filename)
-        file_path = os.path.join('./data/', video_filename)
-        Your_input.save(file_path)
-        mp4_to_mp3(file_path, file_number_inside)
-        # 클로바 실행시 아래 두 줄 주석 취소하기
-        # upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
-        # upload_blob_file('./data/audio' + str(file_number_inside) +
-                        #  '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
-        video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-        audio_path = 'https://crayon-team-j.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
-        os.remove('./data/'+video_filename)
-        os.remove('./data/audio' + str(file_number_inside) + '.mp3')
-        video_pk = views.path_by_local(
-            False, video_filename, video_path, audio_path)
-        # video_pk_g = video_pk
-
-        #send result to model server
-        send_to_yolo(video_path, video_pk)
-        
         #이미 DB에 저장되어있으면 패스
         video_title = request.files['file'].filename
         try: 
@@ -141,12 +121,11 @@ def video_input():
             upload_blob_file('./data/audio' + str(file_number_inside) +
                             '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
             video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-            audio_path = 'https://crayon-team-j.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+            audio_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
             os.remove('./data/'+video_filename)
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
             video_pk = views.path_by_local(False, video_title, video_duration, video_filename,video_path, audio_path)
             # video_pk_g = video_pk
-            make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
             #send result to model server
             asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
 
@@ -247,6 +226,12 @@ def signup():
 
     else:
         return make_response(jsonify({'Result': 'Success'}), 200)
+
+# @app.route('/api/search', method=['GET'])
+# def detect_start():
+#     id = request.args.get('id')
+#     lang = request.args.get('language')
+#     pass
 
 
 
