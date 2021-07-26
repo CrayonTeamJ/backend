@@ -78,3 +78,9 @@ def find_duplicatuon(video_title):
     by_title = models.video_info.query.filter(video_title == models.video_info.video_title).order_by(models.video_info.id.desc()).first()
     id = by_title.id
     return id
+
+def find_path(video_pk):
+    by_id = models.video_info.query.filter(video_pk == models.video_info.id).order_by(models.video_info.id.desc()).first()
+    audio_path = by_id.s3_audio
+    video_path = by_id.s3_video
+    return video_path, audio_path

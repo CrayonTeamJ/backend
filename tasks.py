@@ -83,10 +83,19 @@ async def detect_yolo(video_path, video_pk):
 
 async def detect_start(video_pk, audio_path, video_path, lang):
 
-    await run_yolo(video_path, video_pk)
-    await run_clova(video_pk, audio_path, lang)
+    try:
+        await run_yolo(video_path, video_pk)
+        yolo_result = True
+    except:
+        yolo_result = False
+    
+    try:
+        await run_clova(video_pk, audio_path, lang)
+        clova_result = True
+    except:
+        clova_result = False
 
-    pass
+    return yolo_result, clova_result
 
 
 
