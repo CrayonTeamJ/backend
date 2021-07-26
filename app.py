@@ -1,3 +1,4 @@
+
 import os
 from flask import Flask, jsonify, Response, make_response, request, json, redirect
 from flask_cors import CORS
@@ -63,7 +64,7 @@ JWT_COOKIE_SECURE = False  # https를 통해서만 cookie가 갈 수 있는지 (
 app.config["JWT_TOKEN_LOCATION"] = [
     'cookies', "headers", "json"]  # 토큰을 어디서 찾을지에 대한 내용
 JWT_COOKIE_CSRF_PROTECT = True
-JWT_ACCESS_TOKEN_EXPIRES = 600000
+JWT_ACCESS_TOKEN_EXPIRES = 6000000
 
 app.config.from_object(config)
 db.init_app(app)
@@ -166,6 +167,28 @@ def video_input():
 
             return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
+# @app.route('/api/detect', methods=['GET'])
+# def detect_start():
+#     id = request.args.get('id')
+#     lang = request.args.get('language')
+
+#     vid_info = views.find_path(id)
+#     video_path = vid_info[0]
+#     audio_path = vid_info[1]
+
+#     results = asyncio.run(tasks.detect_start(id, audio_path, video_path, lang))
+#     if results[0] == True:
+#         yolo_result = 'success'
+#     else:
+#         yolo_result = 'fail'
+
+#     if results[1] == True:
+#         clova_result = 'success'
+#     else:
+#         clova_result = 'fail'
+
+#     return make_response(jsonify({'yolo_result' : yolo_result, 'clova_result' : clova_result}), 200)
+
 
 @app.route('/api/refresh', methods=['GET'])
 # @jwt_required(locations="headers")
@@ -178,6 +201,8 @@ def refresh():
     else:
         access_token = create_access_token(identity=current_user)
         return jsonify(Result='success', access_token=access_token, current_user=current_user, access_expire=JWT_ACCESS_TOKEN_EXPIRES), 200
+
+
 
 
 @app.route('/api/logout', methods=['GET'])
@@ -208,6 +233,7 @@ def login():
         return make_response(jsonify({'Result': 'fail'}), 203)
 
 
+
 @app.route('/api/signup', methods=['POST'])
 def signup():
     userform = request.json
@@ -223,18 +249,7 @@ def signup():
     else:
         return make_response(jsonify({'Result': 'Success'}), 200)
 
-# @app.route('/api/search', method=['GET'])
-# def detect_start():
-#     id = request.args.get('id')
-#     lang = request.args.get('language')
-#     pass
 
-
-
-def send_to_yolo(video_path, video_pk):
-    data = {"video_path": video_path, "video_pk": video_pk}
-    response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
-    
 
 # @app.route('/api/search', methods=['GET'])
 # def search():
