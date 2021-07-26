@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import *
 import logging
+from pymongo.common import validate_ok_for_update
 from werkzeug.utils import secure_filename
 from werkzeug.wrappers import response
 import config
@@ -17,6 +18,7 @@ from flask_celery import make_celery
 import requests
 from pytube import YouTube
 from flask_pymongo import PyMongo
+import asyncio
 
 import time
 import function
@@ -146,10 +148,7 @@ def video_input():
             # video_pk_g = video_pk
             make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
             #send result to model server
-            send_to_yolo(video_path, video_pk)
-            
-            post_result = clova(audio_path, lang)
-            save_audio_result_to_mongo(video_pk, post_result)
+            asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
 
             return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
@@ -188,11 +187,7 @@ def video_input():
             video_pk = views.path_by_local(
                 True, video_title, video_duration , video_filename,  video_path, audio_path)
             
-            # send result to model server
-            send_to_yolo(video_path, video_pk)
-
-            post_result = clova(audio_path, lang)
-            save_audio_result_to_mongo(video_pk, post_result)
+            asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
 
             return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
