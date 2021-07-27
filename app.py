@@ -23,6 +23,8 @@ import asyncio
 
 import time
 import function
+from elasticsearch import Elasticsearch
+
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS']=False
@@ -251,22 +253,41 @@ def signup():
         return make_response(jsonify({'Result': 'Success'}), 200)
 
 
+from aud_search import *
 
-# @app.route('/api/search', methods=['GET'])
-# def search():
-#     req_query= request.args.to_dict()
-#     video_id= req_query['id']
-#     searchtype= req_query['search_type']
-#     search_img= req_query['search_img']
-#     search_aud= req_query['search_aud']
-    
-#     if searchtype == 'image':
-#         image_search(video_id, search_img)
-    
-#     # elif searchtype == 'audio':
-#     #     audio_search(video_id, search_aud)
+def send_to_yolo(video_path, video_pk):
+    data = {"video_path": video_path, "video_pk": video_pk}
+    response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
 
-#     return make_response(request.args.to_dict(), 200)
+
+@app.route('/api/audiosearch', methods=['GET'])
+def search():
+
+    video_id = int(request.args.get('id'))
+    keyword = request.args.get('search_aud')
+
+    videos = views.get_video_info(video_id)
+    title, url, duration = videos[0], videos[1], videos[2]
+    search_info_aud = {'search_vid': keyword, 'type': "audio"}
+    vid_info = {'title': title, 's3_url': url, 'video_length': duration}
+
+    for s in coll.find({"video_number":video_id}):
+        setence_list = s['sentence_list']
+    
+    input_elastic = {'video_id': video_id, 'sentence_list': setence_list}
+    # createIndex()
+    # insert_data(input_elastic)
+    # res = audio_search(video_id, keyword)
+
+    # result_list = []
+    # for s in coll3.find({"video_pk":video_id}):
+    #     image_list = s['image_list']
+    #     for key in image_list:
+    #         result_list.append([key['time'], key['path']])
+
+    # return res
+    return make_response(request.args.to_dict(), 200)
+    # return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
 
 
 from img_search import *
