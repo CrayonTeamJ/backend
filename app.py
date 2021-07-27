@@ -121,7 +121,7 @@ def video_input():
             audio_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
             os.remove('./data/'+video_filename)
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
-            video_pk = views.path_by_local(False, video_title, video_duration, video_filename,video_path, audio_path)
+            video_pk = views.path_by_local(False, video_title, video_duration, video_path, video_filename,video_path, audio_path)
             # video_pk_g = video_pk
             #send result to model server
             asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
@@ -143,15 +143,16 @@ def video_input():
         except:
 
             video_filename = 'video' + str(file_number_inside) + '.mp4'
-            video_info = tasks.async_download_video(Your_input, file_number_inside)
-            video_duration = video_info
+            video_duration = download_video(Your_input, file_number_inside)
+            
 
             upload_blob_file('./data/video' + str(file_number_inside) +
                             '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
             
 
             # 클로바 실행시 아래 두 줄 주석 취소하기
-            tasks.async_download_audio(Your_input, file_number_inside)
+            asyncio.run(download_both(Your_input, file_number_inside))
+            #download_audio(Your_input, file_number_inside)
 
             upload_blob_file('./data/audio' + str(file_number_inside) +
                             '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
@@ -161,7 +162,7 @@ def video_input():
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
             video_pk = views.path_by_local(
-                True, video_title, video_duration , video_filename,  video_path, audio_path)
+                True, video_title, video_duration , Your_input, video_filename,  video_path, audio_path)
             
             asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
 

@@ -34,11 +34,12 @@ class video_info(db.Model):
     s3_video = db.Column(db.String(150))
     s3_audio = db.Column(db.String(150))
     
-    def __init__(self, category, video_title, video_duration, s3_title, s3_video, s3_audio):
+    def __init__(self, category, video_title, video_duration, s3_title, youtube_url, s3_video, s3_audio):
         self.category = category
         self.video_title = video_title
         self.video_duration = video_duration
         self.s3_title = s3_title
+        self.youtube_url = youtube_url
         self.s3_video = s3_video
         self.s3_audio = s3_audio
 

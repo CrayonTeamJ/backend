@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import asyncio
 import youtube_dl
 from pytube import YouTube
 from moviepy.editor import *
@@ -28,7 +29,7 @@ def mp4_to_mp3(file_path, file_number):
     videoClip.close()
     pass
 
-def download_audio(youtube_url, file_number):
+async def download_audio(youtube_url, file_number):
     ydl_opts = {
         'nocheckcertificate': True,
       	'outtmpl': './data/audio' + str(file_number) + '.mp3',
@@ -59,7 +60,7 @@ def download_audio(youtube_url, file_number):
 #     pass
 
 
-def download_video(youtube_url, file_number):
+async def download_video(youtube_url, file_number):
     ydl_opts = {
         'nocheckcertificate': True,
         'videoformat' : "mp4",
@@ -72,6 +73,11 @@ def download_video(youtube_url, file_number):
         video_duration = info_dict.get('duration', None)
         ydl.download([youtube_url])
     return video_duration
+
+async def download_both(youtube_url, file_number):
+
+    a, b = await asyncio.gather(asyncio.create_task(download_video(youtube_url, file_number)), asyncio.create_task(download_audio(youtube_url, file_number)))
+    return a
 
 def download_video_dl(youtube_url, file_number):
     ydl_opts = {
@@ -108,4 +114,5 @@ def get_youtube_title(url):
         video_title = info_dict.get('title', None)
 
     return video_title
+    
     

@@ -1,4 +1,5 @@
 
+import types
 from pymongo.common import validate_ok_for_update
 import views
 from flask_celery import make_celery
@@ -47,6 +48,11 @@ def post_toYolo(pk, video_path):
 #여기부턴 asynd 함수
 from app import coll
 
+@types.coroutine
+def switch():
+    yield
+
+
 def save_audio_result_to_mongo(video_pk, post_result):
     coll.insert({
         'video_number': video_pk,
@@ -61,9 +67,13 @@ def clova(audio_path, lang):
         # print('type_of_postresult:', type(post_result))
     return post_result
 
-def send_to_yolo(video_path, video_pk):
+async def send_to_yolo(video_path, video_pk):
     data = {"video_path": video_path, "video_pk": video_pk}
-    response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
+    
+    requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
+    
+
+    
     
 
 async def run_clova(video_pk, audio_path, lang):
@@ -72,8 +82,21 @@ async def run_clova(video_pk, audio_path, lang):
     save_audio_result_to_mongo(video_pk, post_result)
     return 
 
+
+async def detect_start(video_pk, audio_path, video_path, lang):
+    
+
+    await asyncio.gather(asyncio.create_task(send_to_yolo(video_path, video_pk)), asyncio.create_task(run_clova(video_pk, audio_path, lang)))
+
+
+
+
+
+
+
+
 async def run_yolo(video_path, video_pk):
-    send_to_yolo(video_path, video_pk)
+    await send_to_yolo(video_path, video_pk)
 
 async def detect_clovd(video_pk, audio_path, lang):
     await run_clova(video_pk, audio_path, lang)
@@ -81,21 +104,19 @@ async def detect_clovd(video_pk, audio_path, lang):
 async def detect_yolo(video_path, video_pk):
     await send_to_yolo(video_path, video_pk)
 
-async def detect_start(video_pk, audio_path, video_path, lang):
-
-    try:
-        await run_yolo(video_path, video_pk)
-        yolo_result = True
-    except:
-        yolo_result = False
+    # try:
+    #     await run_yolo(video_path, video_pk)
+    #     yolo_result = True
+    # except:
+    #     yolo_result = False
     
-    try:
-        await run_clova(video_pk, audio_path, lang)
-        clova_result = True
-    except:
-        clova_result = False
+    # try:
+    #     await run_clova(video_pk, audio_path, lang)
+    #     clova_result = True
+    # except:
+    #     clova_result = False
 
-    return yolo_result, clova_result
+    # return yolo_result, clova_result
 
 
 
