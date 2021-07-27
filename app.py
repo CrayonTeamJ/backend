@@ -252,13 +252,12 @@ def signup():
         return make_response(jsonify({'Result': 'Success'}), 200)
 
 
-
+from aud_search import *
 
 def send_to_yolo(video_path, video_pk):
     data = {"video_path": video_path, "video_pk": video_pk}
     response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
-    
-es = Elasticsearch('http://elasticsearch:9200')
+
 
 @app.route('/api/audiosearch', methods=['GET'])
 def search():
@@ -266,50 +265,28 @@ def search():
     video_id = int(request.args.get('id'))
     keyword = request.args.get('search_aud')
 
-    # videos = views.get_video_info(video_id)
-    # title, url, duration = videos[0], videos[1], videos[2]
-    # search_info = {'search_vid': keyword, 'type': "video"}
+    videos = views.get_video_info(video_id)
+    title, url, duration = videos[0], videos[1], videos[2]
+    search_info_aud = {'search_vid': keyword, 'type': "audio"}
+    vid_info = {'title': title, 's3_url': url, 'video_length': duration}
 
     for s in coll.find({"video_number":video_id}):
         setence_list = s['sentence_list']
     
     input_elastic = {'video_id': video_id, 'sentence_list': setence_list}
-    createIndex(input_elastic)
+    # createIndex()
+    insert_data(input_elastic)
+    res = audio_search(video_id, keyword)
 
-    return jsonify(input_elastic)
+    # result_list = []
+    # for s in coll3.find({"video_pk":video_id}):
+    #     image_list = s['image_list']
+    #     for key in image_list:
+    #         result_list.append([key['time'], key['path']])
+
+    # return res
     # return make_response(request.args.to_dict(), 200)
-
-def createIndex(body):
-        # ===============
-        # 인덱스 생성
-        # ===============
-        es.indices.create(
-            index = "contents",
-            body = {
-                        "mappings" : {
-                            "properties" : {
-                                "video_number" : {
-                                "type" : "int"
-                                },
-                                "sentence_list" : {
-                                "sentence_number" : "int",
-                                "confidence" : "float",
-                                "sentence" : "text",
-                                "start_time" : "int",
-                                "end_time" : "int"
-                                }
-                            }
-                        }
-                    }
-        )
-
-
-def insert_data(input_elastic):
-
-    body = input_elastic
-    result = es.index(index='contents', doc_type='title', body=body)
-
-    return jsonify(result)
+    return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
 
 
 from img_search import *

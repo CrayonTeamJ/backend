@@ -1,9 +1,49 @@
 from elasticsearch import Elasticsearch
-import json
-from app import coll
+from flask import json, jsonify
 
-def audio_search(video_id, search_aud):
-    es = Elasticsearch('http://elasticsearch:9200')
+es = Elasticsearch(['http://elasticsearch:9200'], http_auth=('elastic', 'changeme'))
+
+def createIndex():
+        # ===============
+        # 인덱스 생성
+        # ===============
+        es.indices.create(
+            index = "content",
+            body = {
+                "mappings" : {
+                    "properties":{
+                        "video_number" : {"type" : "integer"},
+                        "sentence_list" : {
+                            "properties": {
+                                "sentence_number" : {
+                                    "type": "long"
+                                },
+                                "confidence" : {
+                                    "type": "float"
+                                },
+                                "sentence" : {
+                                    "type": "text"
+                                },
+                                "start_time" : {
+                                    "type": "long"
+                                },
+                                "end_time" : {
+                                    "type": "long"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        )
+
+
+def insert_data(input_elastic):
+
+    body = input_elastic
+    result = es.index(index='content', body=body)
+
+def audio_search(video_id, keyword):
     
     #mongo db에서 가져오기(index)
     # index = [검색할_인덱스]
@@ -22,7 +62,7 @@ def audio_search(video_id, search_aud):
                     },
                         {
                         "match": {
-                            "sentence_list.sentence": search_aud
+                            "sentence_list.sentence": keyword
                         }
                     }
                 ]
@@ -31,12 +71,7 @@ def audio_search(video_id, search_aud):
         "_source": ["start_time"]
     }
 
-    query_body = json.loads(query)
-
-    res = es.search(index='', body=query_body)
+    res = es.search(index='', body=query)
     # res에 검색 결과가 담겨져 있다           
 
     return res  
-
-
-# coll.find({ $and: [{video_number:video_pk}, {detection_list.class:0}]}).pretty()
