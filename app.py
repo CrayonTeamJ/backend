@@ -25,6 +25,7 @@ import time
 import function
 from elasticsearch import Elasticsearch
 
+
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS']=False
 db = SQLAlchemy()
@@ -284,16 +285,31 @@ def createIndex(body):
         # ===============
         es.indices.create(
             index = "contents",
-            body = body
+            body = {
+                        "mappings" : {
+                            "properties" : {
+                                "video_number" : {
+                                "type" : "int"
+                                },
+                                "sentence_list" : {
+                                "sentence_number" : "int",
+                                "confidence" : "float",
+                                "sentence" : "text",
+                                "start_time" : "int",
+                                "end_time" : "int"
+                                }
+                            }
+                        }
+                    }
         )
 
 
-# def insert_data(input_elastic):
+def insert_data(input_elastic):
 
-#     body = input_elastic
-#     result = es.index(index='contents', doc_type='title', body=body)
+    body = input_elastic
+    result = es.index(index='contents', doc_type='title', body=body)
 
-#     return jsonify(result)
+    return jsonify(result)
 
 
 from img_search import *
