@@ -253,12 +253,12 @@ def signup():
         return make_response(jsonify({'Result': 'Success'}), 200)
 
 
-from aud_search import *
-
 def send_to_yolo(video_path, video_pk):
     data = {"video_path": video_path, "video_pk": video_pk}
     response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
 
+
+from aud_search import *
 
 @app.route('/api/audiosearch', methods=['GET'])
 def search():
@@ -272,22 +272,36 @@ def search():
     vid_info = {'title': title, 's3_url': url, 'video_length': duration}
 
     for s in coll.find({"video_number":video_id}):
-        setence_list = s['sentence_list']
-    
-    input_elastic = {'sentence_list': setence_list}
-    # createIndex()
-    # insert_data(input_elastic, video_id)
-    # res = audio_search(video_id, keyword)
+        sentence_list = s['sentence_list']
+        for key in sentence_list:
+            input_elastic = {'video_number': video_id, 'sentence': key['sentence'], 'start_time': key['start_time']}
+            insert_data(input_elastic)
 
-    # result_list = []
-    # for s in coll3.find({"video_pk":video_id}):
-    #     image_list = s['image_list']
-    #     for key in image_list:
-    #         result_list.append([key['time'], key['path']])
+    # createIndex()
+    res = audio_search(video_id, keyword)
+
+    hit1 = res['hits']
+    hit2 = hit1['hits']
+
+    time=[]
+    for key in hit2:
+        source = hit2['_source']
+        time.append(source['start_time'])
+
+    time_and_path = []
+    for s in coll3.find({"video_pk":video_id}):
+        image_list = s['image_list']
+        for key in image_list:
+            time_and_path.append([key['time'], key['path']])
+
+    result_list=[]
+    for i in time:
+        for j in time_and_path:
+            if time[i]/1000 == time_and_path[j][0]:
+                result_list.append({'start':time_and_path[j][0], 'thumbnail':time_and_path[j][1]})
 
     # return res
-    return make_response(request.args.to_dict(), 200)
-    # return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
+    return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
 
 
 from img_search import *
