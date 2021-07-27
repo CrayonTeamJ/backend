@@ -257,6 +257,7 @@ def send_to_yolo(video_path, video_pk):
     data = {"video_path": video_path, "video_pk": video_pk}
     response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
     
+es = Elasticsearch('http://elasticsearch:9200')
 
 @app.route('/api/audiosearch', methods=['GET'])
 def search():
@@ -272,19 +273,27 @@ def search():
         setence_list = s['sentence_list']
     
     input_elastic = {'video_id': video_id, 'sentence_list': setence_list}
-    insert_data(input_elastic)
+    createIndex(input_elastic)
 
     return jsonify(input_elastic)
     # return make_response(request.args.to_dict(), 200)
 
+def createIndex(body):
+        # ===============
+        # 인덱스 생성
+        # ===============
+        es.indices.create(
+            index = "contents",
+            body = body
+        )
 
-def insert_data(input_elastic):
 
-    body = input_elastic
-    es = Elasticsearch('http://elasticsearch:9200')
-    result = es.index(index='contents', doc_type='title', body=body)
+# def insert_data(input_elastic):
 
-    return jsonify(result)
+#     body = input_elastic
+#     result = es.index(index='contents', doc_type='title', body=body)
+
+#     return jsonify(result)
 
 
 from img_search import *
