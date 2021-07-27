@@ -123,7 +123,7 @@ def video_input():
             audio_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
             os.remove('./data/'+video_filename)
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
-            video_pk = views.path_by_local(False, video_title, video_duration, video_filename,video_path, audio_path)
+            video_pk = views.path_by_local(False, video_title, video_duration, video_path, video_filename,video_path, audio_path)
             # video_pk_g = video_pk
             #send result to model server
             asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
@@ -163,7 +163,7 @@ def video_input():
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
             video_pk = views.path_by_local(
-                True, video_title, video_duration , video_filename,  video_path, audio_path)
+                True, video_title, video_duration , Your_input, video_filename,  video_path, audio_path)
             
             asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
 
@@ -275,8 +275,8 @@ def search():
     
     input_elastic = {'video_id': video_id, 'sentence_list': setence_list}
     # createIndex()
-    insert_data(input_elastic)
-    res = audio_search(video_id, keyword)
+    # insert_data(input_elastic)
+    # res = audio_search(video_id, keyword)
 
     # result_list = []
     # for s in coll3.find({"video_pk":video_id}):
@@ -285,8 +285,8 @@ def search():
     #         result_list.append([key['time'], key['path']])
 
     # return res
-    # return make_response(request.args.to_dict(), 200)
-    return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
+    return make_response(request.args.to_dict(), 200)
+    # return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
 
 
 from img_search import *
