@@ -23,6 +23,7 @@ import asyncio
 
 import time
 import function
+from elasticsearch import Elasticsearch
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS']=False
@@ -271,9 +272,19 @@ def search():
         setence_list = s['sentence_list']
     
     input_elastic = {'video_id': video_id, 'sentence_list': setence_list}
+    insert_data(input_elastic)
 
     return jsonify(input_elastic)
     # return make_response(request.args.to_dict(), 200)
+
+
+def insert_data(input_elastic):
+
+    body = input_elastic
+    es = Elasticsearch('http://elasticsearch:9200')
+    result = es.index(index='contents', doc_type='title', body=body)
+
+    return jsonify(result)
 
 
 from img_search import *
