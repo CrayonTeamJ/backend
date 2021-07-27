@@ -297,11 +297,61 @@ def search():
     result_list=[]
     for i in time:
         for j in time_and_path:
-            if time[i]/1000 == time_and_path[j][0]:
+            if round(time[i]/1000) == time_and_path[j][0]:
                 result_list.append({'start':time_and_path[j][0], 'thumbnail':time_and_path[j][1]})
 
     # return res
     return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
+
+
+# @app.route('/api/audiosearch2', methods=['GET'])
+# def search():
+
+#     video_id = int(request.args.get('id'))
+#     keyword = request.args.get('search_aud')
+
+#     videos = views.get_video_info(video_id)
+#     title, url, duration = videos[0], videos[1], videos[2]
+#     search_info = {'search_aud': keyword, 'type': "audio"}
+
+#     try:
+#         sentence_list = []
+#         for s in coll.find({"video_number":video_id}):
+#             sentence_list.append(s['sentence_list'])
+
+#         start = []
+#         for i in range(len(sentence_list[0])):
+#             if keyword in sentence_list[0][i]['sentence']:
+#                 start.append([round(sentence_list[0][i]['start_time']/1000)])
+
+#         time_and_path = []
+#         for s in coll3.find({"video_pk":video_id}):
+#             image_list = s['image_list']
+#             for key in image_list:
+#                 time_and_path.append([key['time'], key['path']])
+
+
+#         start_and_path = []
+#         for i in range(len(start)):
+#             for j in range(len(time_and_path)):
+#                 if start[i][0] == time_and_path[j][0]:
+#                     start_and_path.append([start[i][0], time_and_path[j][1]])
+
+
+#         result_list = []
+#         for i in start_and_path:
+#             dictionary = {'start': i[0], 'thumbnail': i[-1]}
+#             dictionary_copy = dictionary.copy()
+#             result_list.append(dictionary_copy)
+
+
+#         vid_info = {'title': title, 'video_length': duration, 's3_url': url}
+#         return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': result_list})
+    
+#     except:
+#         vid_info2 = {'title': title, 's3_url': url, 'video_length': duration}
+#         return jsonify({'result': "fail", 'video_info': vid_info2})
+
 
 
 from img_search import *
