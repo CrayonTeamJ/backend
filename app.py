@@ -274,9 +274,9 @@ def search():
     for s in coll.find({"video_number":video_id}):
         setence_list = s['sentence_list']
     
-    input_elastic = {'video_id': video_id, 'sentence_list': setence_list}
+    input_elastic = {'sentence_list': setence_list}
     # createIndex()
-    # insert_data(input_elastic)
+    # insert_data(input_elastic, video_id)
     # res = audio_search(video_id, keyword)
 
     # result_list = []
