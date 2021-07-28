@@ -4,11 +4,11 @@ from flask import json, jsonify
 es = Elasticsearch(['http://elasticsearch:9200'], http_auth = ('elastic', 'changeme'))
 
 
-def createIndex(input_elastic):
-    
-    if not es.indices.exists(index="content"):
+def createIndex():
+
+    if not es.indices.exists(index="contentd"):
         es.indices.create(
-            index = "content",
+            index = "contentd",
             body = {
                 "mappings" : {
                     "properties" : {
