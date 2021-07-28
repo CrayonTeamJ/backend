@@ -2,13 +2,13 @@ from elasticsearch import Elasticsearch
 from flask import json, jsonify
 
 es = Elasticsearch(['http://elasticsearch:9200'], http_auth = ('elastic', 'changeme'))
-
+# es.indices.delete(index= '*', ignore=[400,404])
 
 def createIndex():
 
-    if not es.indices.exists(index="contentd"):
+    if not es.indices.exists(index="contents"):
         es.indices.create(
-            index = "contentd",
+            index = "contents",
             body = {
                 "mappings" : {
                     "properties" : {
@@ -18,12 +18,13 @@ def createIndex():
                     }
                 }
             }
-        )  
+        )
+
 
 def insert_data(input_elastic):
 
     body = input_elastic
-    result = es.index(index='contentd', body=body)
+    result = es.index(index='contents', body=body)
 
 def audio_search(video_id, keyword):
 
@@ -47,6 +48,6 @@ def audio_search(video_id, keyword):
         "_source": ["start_time"]
     }
 
-    res = es.search(index='contentd', body=query)        
+    res = es.search(index='contents', body=query)        
 
     return res
