@@ -16,28 +16,8 @@ from app import simple_tasks
 
 logger = get_task_logger(__name__)
 
-app = Celery('tasks',
-             broker='amqp://admin:mypass@rabbit:5672',
-             backend='rpc://')
 
 
-
-@simple_tasks.task(bind=True)
-def async_user_insert(self, userID, password, userNICK):
-    views.user_insert(userID, password, userNICK)
-
-@simple_tasks.task(bind=True)
-def async_user_login(self, userID, password):
-    views.user_login(userID, password)
-
-@simple_tasks.task(bind=True)
-def async_path_by_local(self, category, title, video_path, audio_path):
-    views.path_by_local(category, title, video_path, audio_path)
-
-@simple_tasks.task()
-def async_download_audio(youtube_url, file_number): 
-    function.video_func.download_audio(youtube_url, file_number)
-    
 
 @simple_tasks.task()
 def async_download_video(youtube_url, file_number):
@@ -56,6 +36,13 @@ def sendto_yolo(video_path, video_pk):
     
     requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
     logger.info('Work Finished ')
+    pass
+
+@simple_tasks.task()
+def run_clova(video_pk, audio_path, lang):
+
+    post_result = clova(audio_path, lang)
+    save_audio_result_to_mongo(video_pk, post_result)
     pass
 
 
@@ -93,12 +80,7 @@ async def send_to_yolo(video_path, video_pk):
 
     
     
-@simple_tasks.task()
-def run_clova(video_pk, audio_path, lang):
 
-    post_result = clova(audio_path, lang)
-    save_audio_result_to_mongo(video_pk, post_result)
-    return 
 
 
 async def detect_start(video_pk, audio_path, video_path, lang):

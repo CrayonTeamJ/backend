@@ -35,9 +35,9 @@ CORS(app, supports_credentials=True)  # 있어야 프런트와 통신 가능, �
 jwt = JWTManager(app)
 def make_celery(app):
     celery = Celery(
-        app.import_name,
+        'tasks',
         backend= 'amqp://admin:mypass@rabbit:5672/',
-        broker= 'amqp://admin:mypass@rabbit:5672/'
+        broker= 'amqp://admin:mypass@rabbit:5672/', include=["tasks"]
     )
     TaskBase = celery.Task
 
@@ -142,10 +142,11 @@ def video_input():
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
             video_pk = views.path_by_local(False, video_title, video_duration, video_path, video_filename,video_path, audio_path)
 
+            Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
+            
             app.logger.info("Invoking Method ")
             YOLO = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
             app.logger.info(YOLO.backend)
-            Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
             
 
             return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk, 'yolo_id' : YOLO.id, 'clova_id' : Clova.id}), 200)
@@ -179,35 +180,40 @@ def video_input():
 
             video_pk = views.path_by_local(
                 True, video_title, video_duration , Your_input, video_filename,  video_path, audio_path)
+            Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
+
             app.logger.info("Invoking Method ")
             YOLO = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
-            app.logger.info(YOLO.backend)
-            Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
+            app.logger.info(YOLO.id)
+            app.logger.info(Clova.id)
             
 
             return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk, 'yolo_id' : YOLO.id, 'clova_id' : Clova.id}), 200)
 
-# @app.route('/api/detect', methods=['GET'])
-# def detect_start():
-#     id = request.args.get('id')
-#     lang = request.args.get('language')
 
-#     vid_info = views.find_path(id)
-#     video_path = vid_info[0]
-#     audio_path = vid_info[1]
+@app.route('/api/apiStatus', methods=['POST'])
+async def reply():
+    task_id = request.json
+    yolo_id = task_id['yolo_id']
+    clova_id = task_id['clova_id']
+    app.logger.info(request.json)
+    for _ in range(100):
+        clova_result = "fail"
+        if simple_tasks.AsyncResult(clova_id).successful() == True:
+            clova_result = "Success"
+            break
+        await asyncio.sleep(0.3)
+        
 
-#     results = asyncio.run(tasks.detect_start(id, audio_path, video_path, lang))
-#     if results[0] == True:
-#         yolo_result = 'success'
-#     else:
-#         yolo_result = 'fail'
-
-#     if results[1] == True:
-#         clova_result = 'success'
-#     else:
-#         clova_result = 'fail'
-
-#     return make_response(jsonify({'yolo_result' : yolo_result, 'clova_result' : clova_result}), 200)
+    app.logger.info(clova_result)
+    for _ in range(100):
+        yolo_result = "fail"
+        if simple_tasks.AsyncResult(yolo_id).successful() == True:
+            yolo_result = 'Success'
+            break
+        await asyncio.sleep(0.3)
+    app.logger.info(yolo_result)
+    return make_response(jsonify({'yolo_res': yolo_result, 'clova_res': clova_result}), 200)
 
 
 @app.route('/api/refresh', methods=['GET'])
@@ -257,7 +263,7 @@ def login():
 @app.route('/api/signup', methods=['POST'])
 def signup():
     userform = request.json
-    dup_test = tasks.async_user_insert(
+    dup_test = views.user_insert(
         userform['userID'], userform['password'], userform['nickname'])
 
     if dup_test == 'id_duplicated':
