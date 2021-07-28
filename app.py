@@ -115,15 +115,20 @@ def video_input():
             Your_input.save(file_path)
             video_duration = vid_duration(file_path)
             mp4_to_mp3(file_path, file_number_inside)
+            lask_video_pk = views.last_id()
+            video_pk = int(lask_video_pk) + 1
            
-            upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
+            
+            video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + str(video_pk) +'/' + video_filename
+            audio_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/audio/' + str(video_pk) + '/audio' + str(file_number_inside) + '.mp3'
+            views.path_by_local(False, video_title, video_duration, video_path, video_filename,video_path, audio_path)
+
+            upload_blob_file(file_path, 'video/'+str(video_pk)+'/video' + str(file_number_inside) + '.mp4')
             upload_blob_file('./data/audio' + str(file_number_inside) +
-                            '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
-            video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-            audio_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+                            '.mp3', 'audio/'+str(video_pk)+'/audio' + str(file_number_inside) + '.mp3')
+
             os.remove('./data/'+video_filename)
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
-            video_pk = views.path_by_local(False, video_title, video_duration, video_path, video_filename,video_path, audio_path)
 
             Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
             
@@ -152,22 +157,27 @@ def video_input():
             #video_duration = download_video(Your_input, file_number_inside)
 
             video_duration = asyncio.run(download_both(Your_input, file_number_inside))
+            lask_video_pk = views.last_id()
+            video_pk = int(lask_video_pk) + 1
+
+            video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + str(video_pk) +'/' + video_filename
+            audio_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/audio/' + str(video_pk) + '/audio' + str(file_number_inside) + '.mp3'
+            views.path_by_local(
+                True, video_title, video_duration , Your_input, video_filename,  video_path, audio_path)
             upload_blob_file('./data/video' + str(file_number_inside) +
-                            '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
+                            '.mp4', 'video/' + str(video_pk) + '/video' + str(file_number_inside) + '.mp4')
             upload_blob_file('./data/audio' + str(file_number_inside) +
-                            '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
-            video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
-            audio_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/audio/audio' + str(file_number_inside) + '.mp3'
+                            '.mp3', 'audio/'+ str(video_pk) +'/audio' + str(file_number_inside) + '.mp3')
+            
             os.remove('./data/video' + str(file_number_inside) + '.mp4')
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
-            video_pk = views.path_by_local(
-                True, video_title, video_duration , Your_input, video_filename,  video_path, audio_path)
+            
             Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
 
             app.logger.info("Invoking Method ")
             YOLO = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
-            time.sleep(3)
+            time.sleep(10)
             app.logger.info(YOLO.id)
             app.logger.info(Clova.id)
             

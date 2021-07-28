@@ -1,6 +1,5 @@
 
 import types
-
 from celery.app.base import App
 import views
 from celery import Celery

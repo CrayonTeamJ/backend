@@ -1,3 +1,4 @@
+
 from operator import ne
 import sys, os
 from sqlalchemy import sql, func, select
@@ -84,3 +85,10 @@ def find_path(video_pk):
     audio_path = by_id.s3_audio
     video_path = by_id.video_path
     return video_path, audio_path
+
+def last_id():
+    info = models.video_info.query.filter(0 < models.video_info.id).order_by(models.video_info.id.desc()).first()
+    if info == None:
+        return 0
+    id = info.id
+    return id
