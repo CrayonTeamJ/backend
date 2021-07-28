@@ -280,7 +280,7 @@ def send_to_yolo(video_path, video_pk):
 from aud_search import *
 
 @app.route('/api/audiosearch', methods=['GET'])
-def search():
+def audiosearch():
 
     video_id = int(request.args.get('id'))
     keyword = request.args.get('search_aud')
@@ -376,7 +376,7 @@ def search():
 from img_search import *
 
 @app.route('/api/videosearch', methods=['GET'])
-def get():
+def videosearch():
 
     video_id = int(request.args.get('id'))
     keyword = request.args.get('search_img')
@@ -431,3 +431,58 @@ def groupSequence(lst):
     new = [s for s in res if len(s) > 5]
     new2 = [(i[0], i[-1]) for i in new]
     return new2
+
+
+@app.route('/api/multiplesearch', methods=['GET'])
+def multiplesearch():
+    video_id = int(request.args.get('id'))
+    person = request.args.get('search_img')
+    keyword = request.args.get('search_aud')
+
+    videos = views.get_video_info(video_id)
+    title, url, duration = videos[0], videos[1], videos[2]
+    search_info = {'search_vid': person, 'search_aud': keyword, 'type': "both"}
+    
+    try:
+        video_detected_seconds = image_search(video_id, person)
+    
+        audio_sentence_list = []
+        for s in coll.find({"video_number":video_id}):
+            audio_sentence_list.append(s['sentence_list'])
+
+        audio_detected_seconds = []
+        for i in range(len(audio_sentence_list[0])):
+            if keyword in audio_sentence_list[0][i]['sentence']:
+                audio_detected_seconds.append(round(audio_sentence_list[0][i]['start_time']/1000))
+
+        video_and_audio = []
+        for i in range(len(video_detected_seconds)):
+            for j in range(len(audio_detected_seconds)):
+                if video_detected_seconds[i] == audio_detected_seconds[j]:
+                    video_and_audio.append(video_detected_seconds[i])
+
+        path_and_time = []
+        for s in coll3.find({"video_pk":video_id}):
+            image_list = s['image_list']
+            for key in image_list:
+                path_and_time.append([key['time'], key['path']])
+    
+        start_and_path = []
+        for i in range(len(video_and_audio)):
+            for j in range(len(path_and_time)):
+                if video_and_audio[i] == path_and_time[j][0]:
+                    start_and_path.append([video_and_audio[i], path_and_time[j][-1]])
+
+
+        result_list = []
+        for i in start_and_path:
+            dictionary = {'start': i[0], 'thumbnail': i[-1]}
+            dictionary_copy = dictionary.copy()
+            result_list.append(dictionary_copy)
+
+        vid_info = {'title': title, 'video_length': duration, 's3_url': url}
+        return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': result_list})
+
+    except:
+        vid_info2 = {'title': title, 's3_url': url, 'video_length': duration}
+        return jsonify({'result': "fail", 'video_info': vid_info2, 'search_info': search_info})
