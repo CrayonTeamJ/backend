@@ -78,10 +78,8 @@ def save_audio_result_to_mongo(video_pk, post_result):
 
 def clova(audio_path, lang):
     pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
-        # print('type_of_preresult:', type(pre_result))
-    
     post_result = to_json(pre_result)
-        # print('type_of_postresult:', type(post_result))
+    
     return post_result
 
 async def send_to_yolo(video_path, video_pk):

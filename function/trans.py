@@ -29,7 +29,7 @@ def to_json(pre_result):
 
     return output
 
-    # # json 파일 쓰기
-    with open('post_result.json', 'w', encoding='UTF-8-sig') as outfile:
-        json.dump(output, outfile, indent=4, ensure_ascii=False)
-    # return 'post_result'
+    # # # json 파일 쓰기
+    # with open('post_result.json', 'w', encoding='UTF-8-sig') as outfile:
+    #     json.dump(output, outfile, indent=4, ensure_ascii=False)
+    # # return 'post_result'

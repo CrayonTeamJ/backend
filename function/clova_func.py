@@ -45,9 +45,6 @@ class ClovaSpeechClient:
         return res.text
 
 
-# if __name__ == '__main__':
-#     res = ClovaSpeechClient().req_url(
-#         url='https://teamj-data.s3.ap-northeast-2.amazonaws.com/audio/audio1.mp3', completion='sync')
     # from S3 URL
     # res = ClovaSpeechClient().req_object_storage(data_key='data/media.mp3', completion='sync')
     # res = ClovaSpeechClient().req_upload(file='/data/media.mp3', completion='sync')
