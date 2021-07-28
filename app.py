@@ -272,6 +272,7 @@ def audiosearch():
     vid_info = {'title': title, 's3_url': url, 'video_length': duration}
 
     try:
+        deleteIndex()
         createIndex()
 
         for s in coll.find({"video_number":video_id}):
