@@ -60,25 +60,6 @@ def clova(audio_path, lang):
 
     return post_result
 
-
-es = Elasticsearch(['http://elasticsearch:9200'], http_auth = ('elastic', 'changeme'))
-
-#createIndex in ES
-es.indices.create(
-    index = "content",
-    body = {
-        "mapping" : {
-            "properties" : {
-                "video_number" : {"type" : "integer"},
-                "sentence_number" : {"type" : "integer"},
-                "sentence" : {"type" : "text"},
-                "start_time" : {"type" : "integer"}
-            }
-        }
-    }
-)
-
-
 #task
 import tasks
 JWT_COOKIE_SECURE = False  # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
@@ -164,17 +145,11 @@ def video_input():
         except:
 
             video_filename = 'video' + str(file_number_inside) + '.mp4'
-            video_duration = download_video(Your_input, file_number_inside)
-            
+            #video_duration = download_video(Your_input, file_number_inside)
 
+            video_duration = asyncio.run(download_both(Your_input, file_number_inside))
             upload_blob_file('./data/video' + str(file_number_inside) +
                             '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
-            
-
-            # 클로바 실행시 아래 두 줄 주석 취소하기
-            asyncio.run(download_both(Your_input, file_number_inside))
-            #download_audio(Your_input, file_number_inside)
-
             upload_blob_file('./data/audio' + str(file_number_inside) +
                             '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
             video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
@@ -278,10 +253,11 @@ def send_to_yolo(video_path, video_pk):
 
 
 from aud_search import *
+from time import sleep
 
 @app.route('/api/audiosearch', methods=['GET'])
 def audiosearch():
-
+    
     video_id = int(request.args.get('id'))
     keyword = request.args.get('search_aud')
 
@@ -290,37 +266,43 @@ def audiosearch():
     search_info_aud = {'search_vid': keyword, 'type': "audio"}
     vid_info = {'title': title, 's3_url': url, 'video_length': duration}
 
-    for s in coll.find({"video_number":video_id}):
-        sentence_list = s['sentence_list']
-        for key in sentence_list:
-            input_elastic = {'video_number': video_id, 'sentence': key['sentence'], 'start_time': key['start_time']}
-            insert_data(input_elastic)
+    try:
+        for s in coll.find({"video_number":video_id}):
+            sentence_list = s['sentence_list']
+            for key in sentence_list:
+                input_elastic = {'video_number': video_id, 'sentence': key['sentence'], 'start_time': key['start_time']}
+                insert_data(input_elastic)
 
-    # createIndex()
-    res = audio_search(video_id, keyword)
+        # sleep(2)
+        # createIndex()
+        res = audio_search(video_id, keyword)
 
-    hit1 = res['hits']
-    hit2 = hit1['hits']
+        hit1 = res['hits']
+        hit2 = hit1['hits']
 
-    time=[]
-    for key in hit2:
-        source = hit2['_source']
-        time.append(source['start_time'])
+        time=[]
+        for key in hit2:
+            source = key['_source']
+            time.append(source['start_time'])
 
-    time_and_path = []
-    for s in coll3.find({"video_pk":video_id}):
-        image_list = s['image_list']
-        for key in image_list:
-            time_and_path.append([key['time'], key['path']])
+        time_and_path = []
+        for s in coll3.find({"video_pk":video_id}):
+            image_list = s['image_list']
+            for key in image_list:
+                time_and_path.append([key['time'], key['path']])
 
-    result_list=[]
-    for i in time:
-        for j in time_and_path:
-            if round(time[i]/1000) == time_and_path[j][0]:
-                result_list.append({'start':time_and_path[j][0], 'thumbnail':time_and_path[j][1]})
+        result_list=[]
+        for i in time_and_path:
+            for j in time:
+                start = round(j/1000)
+                if start == i[0]:
+                    result_list.append({'start':i[0], 'thumbnail':i[1]})
 
-    # return res
-    return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
+        return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
+
+    except:
+        return jsonify({'result': "fail", 'video_info': vid_info, 'search_info': search_info_aud })
+
 
 
 # @app.route('/api/audiosearch2', methods=['GET'])
