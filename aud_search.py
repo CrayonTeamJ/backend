@@ -3,21 +3,26 @@ from flask import json, jsonify
 
 es = Elasticsearch(['http://elasticsearch:9200'], http_auth = ('elastic', 'changeme'))
 
-def createIndex():
-    #createIndex in ES
-    es.indices.create(
-        index = "contentd",
-        body = {
-            "mappings" : {
-                "properties" : {
-                    "video_number" : {"type" : "integer"},
-                    "sentence" : {"type" : "text"},
-                    "start_time" : {"type" : "integer"}
+
+def createIndex(input_elastic):
+    if es.indices.exists(index="content"):
+        insert_data(input_elastic)
+
+    else:
+        es.indices.create(
+            index = "content",
+            body = {
+                "mappings" : {
+                    "properties" : {
+                        "video_number" : {"type" : "integer"},
+                        "sentence" : {"type" : "text"},
+                        "start_time" : {"type" : "integer"}
+                    }
                 }
             }
-        }
-    )
+        )
 
+        insert_data(input_elastic)        
 
 def insert_data(input_elastic):
 

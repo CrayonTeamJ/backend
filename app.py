@@ -60,6 +60,7 @@ def clova(audio_path, lang):
 
     return post_result
 
+
 #task
 import tasks
 JWT_COOKIE_SECURE = False  # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
@@ -228,7 +229,7 @@ def login():
 
     else:
         return make_response(jsonify({'Result': 'fail'}), 203)
-
+    
 
 
 @app.route('/api/signup', methods=['POST'])
