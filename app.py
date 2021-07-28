@@ -268,7 +268,7 @@ def audiosearch():
 
     videos = views.get_video_info(video_id)
     title, url, duration = videos[0], videos[1], videos[2]
-    search_info_aud = {'search_vid': keyword, 'type': "audio"}
+    search_info_aud = {'search_aud': keyword, 'type': "audio", 'search_vid' : ''}
     vid_info = {'title': title, 's3_url': url, 'video_length': duration}
 
     try:
@@ -371,12 +371,12 @@ def videosearch():
     total_len = 0
     videos = views.get_video_info(video_id)
     title, url, duration = videos[0], videos[1], videos[2]
-    search_info = {'search_vid': keyword, 'type': "video"}
+    search_info = {'search_vid': keyword, 'type': "video", 'search_aud' : ''}
 
     try:
         detected_seconds = image_search(video_id, keyword)
         if not detected_seconds:
-            vid_info = {'title': title, 'video_length': duration, 'len':total_len, 's3_url': url}
+            vid_info = {'title': title, 'video_length': duration, 'length':total_len, 's3_url': url}
             return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': detected_seconds}) 
 
         start_and_end = groupSequence(detected_seconds)
@@ -396,15 +396,15 @@ def videosearch():
         result_list = []
         for i in start_and_end_and_path:
             total_len += (i[1]-i[0])
-            dictionary = {'start': i[0], 'end': i[1], 'length': i[1]-i[0], 'thumbnail': i[-1]}
+            dictionary = {'start': i[0], 'end': i[1], 'leng': i[1]-i[0], 'thumbnail': i[-1]}
             dictionary_copy = dictionary.copy()
             result_list.append(dictionary_copy)
 
-        vid_info = {'title': title, 'video_length': duration, 'len':total_len, 's3_url': url}
+        vid_info = {'title': title, 'video_length': duration, 'length':total_len, 's3_url': url}
         return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': result_list})
     
     except:
-        vid_info2 = {'title': title, 's3_url': url, 'video_length': duration, 'len': "0"}
+        vid_info2 = {'title': title, 's3_url': url, 'video_length': duration, 'length': "0"}
         return jsonify({'result': "fail", 'video_info': vid_info2, 'search_info': search_info})
 
 
