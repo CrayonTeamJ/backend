@@ -59,24 +59,6 @@ coll2 = mongodb_client.db.video_files_list
 coll3 = mongodb_client.db.images_coll
 
 
-def save_audio_result_to_mongo(video_pk, post_result):
-    coll.insert({
-        'video_number': video_pk,
-        'sentence_list': post_result['sentence_list']
-    })
-
-
-def clova(audio_path, lang):
-    pre_result = ClovaSpeechClient().req_url(url=audio_path, language = lang, completion='sync')
-        # print('type_of_preresult:', type(pre_result))
-    
-    post_result = to_json(pre_result)
-        # print('type_of_postresult:', type(post_result))
-    
-
-    return post_result
-
-
 #task
 import tasks
 JWT_COOKIE_SECURE = False  # https를 통해서만 cookie가 갈 수 있는지 (production 에선 True)
@@ -132,7 +114,7 @@ def video_input():
             Your_input.save(file_path)
             video_duration = vid_duration(file_path)
             mp4_to_mp3(file_path, file_number_inside)
-            # 클로바 실행시 아래 두 줄 주석 취소하기
+           
             upload_blob_file(file_path, 'video/video' + str(file_number_inside) + '.mp4')
             upload_blob_file('./data/audio' + str(file_number_inside) +
                             '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
@@ -292,10 +274,11 @@ def audiosearch():
 
     videos = views.get_video_info(video_id)
     title, url, duration = videos[0], videos[1], videos[2]
-    search_info_aud = {'search_vid': keyword, 'type': "audio"}
+    search_info_aud = {'search_aud': keyword, 'type': "audio", 'search_vid' : ''}
     vid_info = {'title': title, 's3_url': url, 'video_length': duration}
 
     try:
+        deleteIndex()
         createIndex()
 
         for s in coll.find({"video_number":video_id}):
@@ -310,6 +293,9 @@ def audiosearch():
 
         hit1 = res['hits']
         hit2 = hit1['hits']
+
+        if not hit2:
+            return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': hit2})
 
         time=[]
         for key in hit2:
@@ -395,12 +381,12 @@ def videosearch():
     total_len = 0
     videos = views.get_video_info(video_id)
     title, url, duration = videos[0], videos[1], videos[2]
-    search_info = {'search_vid': keyword, 'type': "video"}
+    search_info = {'search_vid': keyword, 'type': "video", 'search_aud' : ''}
 
     try:
         detected_seconds = image_search(video_id, keyword)
         if not detected_seconds:
-            vid_info = {'title': title, 'video_length': duration, 'len':total_len, 's3_url': url}
+            vid_info = {'title': title, 'video_length': duration, 'length':total_len, 's3_url': url}
             return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': detected_seconds}) 
 
         start_and_end = groupSequence(detected_seconds)
@@ -420,15 +406,15 @@ def videosearch():
         result_list = []
         for i in start_and_end_and_path:
             total_len += (i[1]-i[0])
-            dictionary = {'start': i[0], 'end': i[1], 'length': i[1]-i[0], 'thumbnail': i[-1]}
+            dictionary = {'start': i[0], 'end': i[1], 'leng': i[1]-i[0], 'thumbnail': i[-1]}
             dictionary_copy = dictionary.copy()
             result_list.append(dictionary_copy)
 
-        vid_info = {'title': title, 'video_length': duration, 'len':total_len, 's3_url': url}
+        vid_info = {'title': title, 'video_length': duration, 'length':total_len, 's3_url': url}
         return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': result_list})
     
     except:
-        vid_info2 = {'title': title, 's3_url': url, 'video_length': duration, 'len': "0"}
+        vid_info2 = {'title': title, 's3_url': url, 'video_length': duration, 'length': "0"}
         return jsonify({'result': "fail", 'video_info': vid_info2, 'search_info': search_info})
 
 

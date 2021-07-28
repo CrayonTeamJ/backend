@@ -2,7 +2,9 @@ from elasticsearch import Elasticsearch
 from flask import json, jsonify
 
 es = Elasticsearch(['http://elasticsearch:9200'], http_auth = ('elastic', 'changeme'))
-# es.indices.delete(index= '*', ignore=[400,404])
+
+def deleteIndex():
+    es.indices.delete(index= '*', ignore=[400,404])
 
 def createIndex():
 
