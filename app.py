@@ -141,11 +141,14 @@ def video_input():
             os.remove('./data/'+video_filename)
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
             video_pk = views.path_by_local(False, video_title, video_duration, video_path, video_filename,video_path, audio_path)
-            # video_pk_g = video_pk
-            #send result to model server
-            asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
 
-            return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
+            app.logger.info("Invoking Method ")
+            YOLO = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
+            app.logger.info(YOLO.backend)
+            Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
+            
+
+            return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk, 'yolo_id' : YOLO.id, 'clova_id' : Clova.id}), 200)
 
     elif request.form['video_type'] == "0":
         # print(file_number_inside)
@@ -177,11 +180,12 @@ def video_input():
             video_pk = views.path_by_local(
                 True, video_title, video_duration , Your_input, video_filename,  video_path, audio_path)
             app.logger.info("Invoking Method ")
-            r = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
-            app.logger.info(r.backend)
-            asyncio.run(tasks.run_clova(video_pk, audio_path, lang))
+            YOLO = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
+            app.logger.info(YOLO.backend)
+            Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
+            
 
-            return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
+            return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk, 'yolo_id' : YOLO.id, 'clova_id' : Clova.id}), 200)
 
 # @app.route('/api/detect', methods=['GET'])
 # def detect_start():

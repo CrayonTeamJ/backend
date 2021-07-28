@@ -88,12 +88,13 @@ async def send_to_yolo(video_path, video_pk):
     data = {"video_path": video_path, "video_pk": video_pk}
     
     requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
+    logger.info('Work Finished ')
     
 
     
     
-
-async def run_clova(video_pk, audio_path, lang):
+@simple_tasks.task()
+def run_clova(video_pk, audio_path, lang):
 
     post_result = clova(audio_path, lang)
     save_audio_result_to_mongo(video_pk, post_result)
