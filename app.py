@@ -163,17 +163,10 @@ def video_input():
 
             video_filename = 'video' + str(file_number_inside) + '.mp4'
             #video_duration = download_video(Your_input, file_number_inside)
-            
 
-            
-            
-
-            # 클로바 실행시 아래 두 줄 주석 취소하기
             video_duration = asyncio.run(download_both(Your_input, file_number_inside))
-            #download_audio(Your_input, file_number_inside)
             upload_blob_file('./data/video' + str(file_number_inside) +
                             '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
-
             upload_blob_file('./data/audio' + str(file_number_inside) +
                             '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
             video_path = 'https://crayon-team-j.s3.ap-northeast-2.amazonaws.com/video/' + video_filename
@@ -254,7 +247,7 @@ def login():
 
     else:
         return make_response(jsonify({'Result': 'fail'}), 203)
-
+    
 
 
 @app.route('/api/signup', methods=['POST'])
@@ -273,16 +266,17 @@ def signup():
         return make_response(jsonify({'Result': 'Success'}), 200)
 
 
-from aud_search import *
-
 def send_to_yolo(video_path, video_pk):
     data = {"video_path": video_path, "video_pk": video_pk}
     response = requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
 
 
-@app.route('/api/audiosearch', methods=['GET'])
-def search():
+from aud_search import *
+from time import sleep
 
+@app.route('/api/audiosearch', methods=['GET'])
+def audiosearch():
+    
     video_id = int(request.args.get('id'))
     keyword = request.args.get('search_aud')
 
@@ -291,29 +285,99 @@ def search():
     search_info_aud = {'search_vid': keyword, 'type': "audio"}
     vid_info = {'title': title, 's3_url': url, 'video_length': duration}
 
-    for s in coll.find({"video_number":video_id}):
-        setence_list = s['sentence_list']
+    try:
+        for s in coll.find({"video_number":video_id}):
+            sentence_list = s['sentence_list']
+            for key in sentence_list:
+                input_elastic = {'video_number': video_id, 'sentence': key['sentence'], 'start_time': key['start_time']}
+                insert_data(input_elastic)
+
+        # sleep(2)
+        # createIndex()
+        res = audio_search(video_id, keyword)
+
+        hit1 = res['hits']
+        hit2 = hit1['hits']
+
+        time=[]
+        for key in hit2:
+            source = key['_source']
+            time.append(source['start_time'])
+
+        time_and_path = []
+        for s in coll3.find({"video_pk":video_id}):
+            image_list = s['image_list']
+            for key in image_list:
+                time_and_path.append([key['time'], key['path']])
+
+        result_list=[]
+        for i in time_and_path:
+            for j in time:
+                start = round(j/1000)
+                if start == i[0]:
+                    result_list.append({'start':i[0], 'thumbnail':i[1]})
+
+        return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
+
+    except:
+        return jsonify({'result': "fail", 'video_info': vid_info, 'search_info': search_info_aud })
+
+
+
+# @app.route('/api/audiosearch2', methods=['GET'])
+# def search():
+
+#     video_id = int(request.args.get('id'))
+#     keyword = request.args.get('search_aud')
+
+#     videos = views.get_video_info(video_id)
+#     title, url, duration = videos[0], videos[1], videos[2]
+#     search_info = {'search_aud': keyword, 'type': "audio"}
+
+#     try:
+#         sentence_list = []
+#         for s in coll.find({"video_number":video_id}):
+#             sentence_list.append(s['sentence_list'])
+
+#         start = []
+#         for i in range(len(sentence_list[0])):
+#             if keyword in sentence_list[0][i]['sentence']:
+#                 start.append([round(sentence_list[0][i]['start_time']/1000)])
+
+#         time_and_path = []
+#         for s in coll3.find({"video_pk":video_id}):
+#             image_list = s['image_list']
+#             for key in image_list:
+#                 time_and_path.append([key['time'], key['path']])
+
+
+#         start_and_path = []
+#         for i in range(len(start)):
+#             for j in range(len(time_and_path)):
+#                 if start[i][0] == time_and_path[j][0]:
+#                     start_and_path.append([start[i][0], time_and_path[j][1]])
+
+
+#         result_list = []
+#         for i in start_and_path:
+#             dictionary = {'start': i[0], 'thumbnail': i[-1]}
+#             dictionary_copy = dictionary.copy()
+#             result_list.append(dictionary_copy)
+
+
+#         vid_info = {'title': title, 'video_length': duration, 's3_url': url}
+#         return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': result_list})
     
-    input_elastic = {'video_id': video_id, 'sentence_list': setence_list}
-    # createIndex()
-    # insert_data(input_elastic)
-    # res = audio_search(video_id, keyword)
+#     except:
+#         vid_info2 = {'title': title, 's3_url': url, 'video_length': duration}
+#         return jsonify({'result': "fail", 'video_info': vid_info2})
 
-    # result_list = []
-    # for s in coll3.find({"video_pk":video_id}):
-    #     image_list = s['image_list']
-    #     for key in image_list:
-    #         result_list.append([key['time'], key['path']])
-
-    # return res
-    return make_response(request.args.to_dict(), 200)
-    # return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': result_list})
 
 
 from img_search import *
 
 @app.route('/api/videosearch', methods=['GET'])
-def get():
+def videosearch():
 
     video_id = int(request.args.get('id'))
     keyword = request.args.get('search_img')
@@ -368,3 +432,58 @@ def groupSequence(lst):
     new = [s for s in res if len(s) > 5]
     new2 = [(i[0], i[-1]) for i in new]
     return new2
+
+
+@app.route('/api/multiplesearch', methods=['GET'])
+def multiplesearch():
+    video_id = int(request.args.get('id'))
+    person = request.args.get('search_img')
+    keyword = request.args.get('search_aud')
+
+    videos = views.get_video_info(video_id)
+    title, url, duration = videos[0], videos[1], videos[2]
+    search_info = {'search_vid': person, 'search_aud': keyword, 'type': "both"}
+    
+    try:
+        video_detected_seconds = image_search(video_id, person)
+    
+        audio_sentence_list = []
+        for s in coll.find({"video_number":video_id}):
+            audio_sentence_list.append(s['sentence_list'])
+
+        audio_detected_seconds = []
+        for i in range(len(audio_sentence_list[0])):
+            if keyword in audio_sentence_list[0][i]['sentence']:
+                audio_detected_seconds.append(round(audio_sentence_list[0][i]['start_time']/1000))
+
+        video_and_audio = []
+        for i in range(len(video_detected_seconds)):
+            for j in range(len(audio_detected_seconds)):
+                if video_detected_seconds[i] == audio_detected_seconds[j]:
+                    video_and_audio.append(video_detected_seconds[i])
+
+        path_and_time = []
+        for s in coll3.find({"video_pk":video_id}):
+            image_list = s['image_list']
+            for key in image_list:
+                path_and_time.append([key['time'], key['path']])
+    
+        start_and_path = []
+        for i in range(len(video_and_audio)):
+            for j in range(len(path_and_time)):
+                if video_and_audio[i] == path_and_time[j][0]:
+                    start_and_path.append([video_and_audio[i], path_and_time[j][-1]])
+
+
+        result_list = []
+        for i in start_and_path:
+            dictionary = {'start': i[0], 'thumbnail': i[-1]}
+            dictionary_copy = dictionary.copy()
+            result_list.append(dictionary_copy)
+
+        vid_info = {'title': title, 'video_length': duration, 's3_url': url}
+        return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': result_list})
+
+    except:
+        vid_info2 = {'title': title, 's3_url': url, 'video_length': duration}
+        return jsonify({'result': "fail", 'video_info': vid_info2, 'search_info': search_info})
