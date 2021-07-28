@@ -5,10 +5,8 @@ es = Elasticsearch(['http://elasticsearch:9200'], http_auth = ('elastic', 'chang
 
 
 def createIndex(input_elastic):
-    if es.indices.exists(index="content"):
-        insert_data(input_elastic)
-
-    else:
+    
+    if not es.indices.exists(index="content"):
         es.indices.create(
             index = "content",
             body = {
@@ -20,9 +18,7 @@ def createIndex(input_elastic):
                     }
                 }
             }
-        )
-
-        insert_data(input_elastic)        
+        )  
 
 def insert_data(input_elastic):
 
