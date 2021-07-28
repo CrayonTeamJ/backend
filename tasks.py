@@ -1,45 +1,62 @@
 
 import types
-from pymongo.common import validate_ok_for_update
+
+from celery.app.base import App
 import views
-from flask_celery import make_celery
-from app import celery
+from celery import Celery
 from app import db
 from function.clova_func import *
+from celery.utils.log import get_task_logger
 from function.trans import *
 import time
 import function.video_func
 import requests
 import asyncio
+from app import simple_tasks
+
+logger = get_task_logger(__name__)
+
+app = Celery('tasks',
+             broker='amqp://admin:mypass@rabbit:5672',
+             backend='rpc://')
 
 
 
-@celery.task(bind=True)
+@simple_tasks.task(bind=True)
 def async_user_insert(self, userID, password, userNICK):
     views.user_insert(userID, password, userNICK)
 
-@celery.task(bind=True)
+@simple_tasks.task(bind=True)
 def async_user_login(self, userID, password):
     views.user_login(userID, password)
 
-@celery.task(bind=True)
+@simple_tasks.task(bind=True)
 def async_path_by_local(self, category, title, video_path, audio_path):
     views.path_by_local(category, title, video_path, audio_path)
 
-@celery.task()
+@simple_tasks.task()
 def async_download_audio(youtube_url, file_number): 
     function.video_func.download_audio(youtube_url, file_number)
     
 
-@celery.task()
+@simple_tasks.task()
 def async_download_video(youtube_url, file_number):
     
     return function.video_func.download_video(youtube_url, file_number)
     
-@celery.task()
+@simple_tasks.task()
 def post_toYolo(pk, video_path):
     data = {'video_pk': pk, 's3_video': video_path}
     return requests.post('http://0.0.0.0:5001/to_yolo', json=data).content
+
+@simple_tasks.task()
+def sendto_yolo(video_path, video_pk):
+    logger.info('Got Request - Starting work ')
+    data = {"video_path": video_path, "video_pk": video_pk}
+    
+    requests.post('http://backend_model:5050/to_yolo', json=data, verify=False)
+    logger.info('Work Finished ')
+    pass
 
 
 
@@ -134,20 +151,3 @@ async def detect_yolo(video_path, video_pk):
 
 # start celery beat
 # celery -A tasks.celery beat --loglevel=info
-@celery.task
-def slow_task(x):
-	time.sleep(x)
-	return x
-    
-
-
-@celery.task
-def quick_task(x):
-	return x
-
-celery.conf.beat_schedule = {
-    'asyncReadMsg in every 10 seconds': {
-        
-        'schedule': 10.0
-    },
-}

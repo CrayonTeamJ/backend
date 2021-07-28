@@ -76,7 +76,7 @@ async def download_video(youtube_url, file_number):
 
 async def download_both(youtube_url, file_number):
 
-    a, b = await asyncio.gather(asyncio.create_task(download_video(youtube_url, file_number)), asyncio.create_task(download_audio(youtube_url, file_number)))
+    a = await asyncio.gather(asyncio.create_task(download_video(youtube_url, file_number)), asyncio.create_task(download_audio(youtube_url, file_number)))
     return a
 
 def download_video_dl(youtube_url, file_number):

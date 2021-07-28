@@ -1,5 +1,6 @@
 
 import os
+import celery
 from flask import Flask, jsonify, Response, make_response, request, json, redirect
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -15,7 +16,7 @@ from function.video_func import *
 from function.s3_control import *
 from function.clova_func import *
 from function.trans import *
-from flask_celery import make_celery
+from celery import Celery
 import requests
 from pytube import YouTube
 from flask_pymongo import PyMongo
@@ -32,7 +33,23 @@ db = SQLAlchemy()
 migrate = Migrate()
 CORS(app, supports_credentials=True)  # 있어야 프런트와 통신 가능, 없으면 오류뜸
 jwt = JWTManager(app)
-celery = make_celery(app)
+def make_celery(app):
+    celery = Celery(
+        app.import_name,
+        backend= 'amqp://admin:mypass@rabbit:5672/',
+        broker= 'amqp://admin:mypass@rabbit:5672/'
+    )
+    TaskBase = celery.Task
+
+    class ContextTask(TaskBase):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    celery.Task = ContextTask
+    return celery
+
+simple_tasks = make_celery(app)
 import views
 # this is only about mongodb
 app.config["MONGO_URI"] = os.environ['MONGO_URI_env']
@@ -145,16 +162,17 @@ def video_input():
         except:
 
             video_filename = 'video' + str(file_number_inside) + '.mp4'
-            video_duration = download_video(Your_input, file_number_inside)
+            #video_duration = download_video(Your_input, file_number_inside)
             
 
-            upload_blob_file('./data/video' + str(file_number_inside) +
-                            '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
+            
             
 
             # 클로바 실행시 아래 두 줄 주석 취소하기
-            asyncio.run(download_both(Your_input, file_number_inside))
+            video_duration = asyncio.run(download_both(Your_input, file_number_inside))
             #download_audio(Your_input, file_number_inside)
+            upload_blob_file('./data/video' + str(file_number_inside) +
+                            '.mp4', 'video/video' + str(file_number_inside) + '.mp4')
 
             upload_blob_file('./data/audio' + str(file_number_inside) +
                             '.mp3', 'audio/audio' + str(file_number_inside) + '.mp3')
@@ -165,8 +183,10 @@ def video_input():
 
             video_pk = views.path_by_local(
                 True, video_title, video_duration , Your_input, video_filename,  video_path, audio_path)
-            
-            asyncio.run(tasks.detect_start(video_pk, audio_path, video_path, lang))
+            app.logger.info("Invoking Method ")
+            r = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
+            app.logger.info(r.backend)
+            asyncio.run(tasks.run_clova(video_pk, audio_path, lang))
 
             return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk}), 200)
 
