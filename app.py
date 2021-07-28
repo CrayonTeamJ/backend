@@ -289,8 +289,6 @@ def audiosearch():
     search_info_aud = {'search_vid': keyword, 'type': "audio"}
     vid_info = {'title': title, 's3_url': url, 'video_length': duration}
 
-    createIndex()
-
     try:
         createIndex()
 
