@@ -1,5 +1,6 @@
 
 import os
+import elasticsearch
 from flask import Flask, jsonify, Response, make_response, request, json, redirect
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -58,6 +59,24 @@ def clova(audio_path, lang):
     
 
     return post_result
+
+
+es = Elasticsearch(['http://elasticsearch:9200'], http_auth = ('elastic', 'changeme'))
+
+#createIndex in ES
+es.indices.create(
+    index = "content",
+    body = {
+        "mapping" : {
+            "properties" : {
+                "video_number" : {"type" : "integer"},
+                "sentence_number" : {"type" : "integer"},
+                "sentence" : {"type" : "text"},
+                "start_time" : {"type" : "integer"}
+            }
+        }
+    }
+)
 
 
 #task
