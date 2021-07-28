@@ -21,6 +21,7 @@ import requests
 from pytube import YouTube
 from flask_pymongo import PyMongo
 import asyncio
+import time
 
 import time
 import function
@@ -107,7 +108,7 @@ def video_input():
         try: 
             views.find_duplicatuon(video_title)
             id = views.find_duplicatuon(video_title)
-            return make_response(jsonify({'Result': 'Success', 'video_pk': id}), 200)
+            return make_response(jsonify({'Result': 'Success', 'video_pk': id, 'yolo_id' : 'duplicate', 'clova_id' : 'duplicate' }), 200)
         except:
             # video_filename=secure_filename(Your_input.filename)
             file_path = os.path.join('./data/', video_filename)
@@ -138,13 +139,13 @@ def video_input():
         Your_input = request.form['video_url']
         validate = url_valid(Your_input)
         if validate == False:
-            return make_response(jsonify({'Result': 'false'}), 202)
+            return make_response(jsonify({'Result': 'false', 'yolo_id' : 'duplicate', 'clova_id' : 'duplicate'}), 202)
         video_title = get_youtube_title(Your_input)
 
         try: 
             views.find_duplicatuon(video_title)
             id = views.find_duplicatuon(video_title)
-            return make_response(jsonify({'Result': 'Success', 'video_pk': id}), 200)
+            return make_response(jsonify({'Result': 'Success', 'video_pk': id, 'yolo_id' : 'duplicate', 'clova_id' : 'duplicate'}), 200)
         except:
 
             video_filename = 'video' + str(file_number_inside) + '.mp4'
@@ -166,6 +167,7 @@ def video_input():
 
             app.logger.info("Invoking Method ")
             YOLO = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
+            time.sleep(3)
             app.logger.info(YOLO.id)
             app.logger.info(Clova.id)
             
@@ -179,7 +181,7 @@ async def reply():
     yolo_id = task_id['yolo_id']
     clova_id = task_id['clova_id']
     app.logger.info(request.json)
-    for _ in range(100):
+    for _ in range(1000):
         clova_result = "fail"
         if simple_tasks.AsyncResult(clova_id).successful() == True:
             clova_result = "Success"
@@ -188,7 +190,7 @@ async def reply():
         
 
     app.logger.info(clova_result)
-    for _ in range(100):
+    for _ in range(1000):
         yolo_result = "fail"
         if simple_tasks.AsyncResult(yolo_id).successful() == True:
             yolo_result = 'Success'
