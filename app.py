@@ -36,8 +36,8 @@ jwt = JWTManager(app)
 def make_celery(app):
     celery = Celery(
         app.import_name,
-        backend= 'amqp://admin:mypass@rabbit:5672/',
-        broker= 'amqp://admin:mypass@rabbit:5672/'
+        backend= 'amqp://guest:guest@rabbit:5672/',
+        broker= 'amqp://guest:guest@rabbit:5672/'
     )
     TaskBase = celery.Task
 
@@ -287,6 +287,9 @@ def audiosearch():
 
         hit1 = res['hits']
         hit2 = hit1['hits']
+
+        if not hit2:
+            return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info_aud, 'res_info': hit2})
 
         time=[]
         for key in hit2:
