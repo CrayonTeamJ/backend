@@ -172,17 +172,18 @@ def video_input():
             os.remove('./data/video' + str(file_number_inside) + '.mp4')
             os.remove('./data/audio' + str(file_number_inside) + '.mp3')
 
-            
-            Clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
+            yolo = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
+            clova = simple_tasks.send_task('tasks.run_clova', kwargs={'video_pk' : video_pk, 'audio_path' : audio_path, 'lang': lang})
 
             app.logger.info("Invoking Method ")
-            YOLO = simple_tasks.send_task('tasks.sendto_yolo', kwargs={'video_path': video_path, 'video_pk' : video_pk})
             time.sleep(10)
-            app.logger.info(YOLO.id)
-            app.logger.info(Clova.id)
+            yolo_id = yolo.id
+            clova_id = clova.id
+            app.logger.info(yolo.id)
+            app.logger.info(clova.id)
             
 
-            return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk, 'yolo_id' : YOLO.id, 'clova_id' : Clova.id}), 200)
+            return make_response(jsonify({'Result': 'Success', 'video_pk': video_pk, 'yolo_id' : yolo_id, 'clova_id' : clova_id}), 200)
 
 
 @app.route('/api/apiStatus', methods=['POST'])
@@ -333,53 +334,6 @@ def audiosearch():
         return jsonify({'result': "fail", 'video_info': vid_info, 'search_info': search_info_aud })
 
 
-# @app.route('/api/audiosearch2', methods=['GET'])
-# def search():
-
-#     video_id = int(request.args.get('id'))
-#     keyword = request.args.get('search_aud')
-
-#     videos = views.get_video_info(video_id)
-#     title, url, duration = videos[0], videos[1], videos[2]
-#     search_info = {'search_aud': keyword, 'type': "audio"}
-
-#     try:
-#         sentence_list = []
-#         for s in coll.find({"video_number":video_id}):
-#             sentence_list.append(s['sentence_list'])
-
-#         start = []
-#         for i in range(len(sentence_list[0])):
-#             if keyword in sentence_list[0][i]['sentence']:
-#                 start.append([round(sentence_list[0][i]['start_time']/1000)])
-
-#         time_and_path = []
-#         for s in coll3.find({"video_pk":video_id}):
-#             image_list = s['image_list']
-#             for key in image_list:
-#                 time_and_path.append([key['time'], key['path']])
-
-
-#         start_and_path = []
-#         for i in range(len(start)):
-#             for j in range(len(time_and_path)):
-#                 if start[i][0] == time_and_path[j][0]:
-#                     start_and_path.append([start[i][0], time_and_path[j][1]])
-
-
-#         result_list = []
-#         for i in start_and_path:
-#             dictionary = {'start': i[0], 'thumbnail': i[-1]}
-#             dictionary_copy = dictionary.copy()
-#             result_list.append(dictionary_copy)
-
-
-#         vid_info = {'title': title, 'video_length': duration, 's3_url': url}
-#         return jsonify({'result': "success", 'video_info': vid_info, 'search_info': search_info, 'res_info': result_list})
-    
-#     except:
-#         vid_info2 = {'title': title, 's3_url': url, 'video_length': duration}
-#         return jsonify({'result': "fail", 'video_info': vid_info2})
 
 
 from img_search import *
