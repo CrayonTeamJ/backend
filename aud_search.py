@@ -40,7 +40,7 @@ def audio_search(video_id, keyword):
                         }
                     },
                         {
-                        "match": {
+                        "match_phrase": {
                             "sentence": keyword
                         }
                     }
