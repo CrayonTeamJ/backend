@@ -299,7 +299,7 @@ def audiosearch():
                 input_elastic = {'video_number': video_id, 'sentence': key['sentence'], 'start_time': key['start_time']}
                 insert_data(input_elastic)
 
-        sleep(1)
+        sleep(2)
 
         res = audio_search(video_id, keyword)
 
